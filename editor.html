@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, initial-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="editor.js"></script>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+
+    <title>Editor de carteles</title>
+<style>
+#dialog {
+    display: grid;
+    grid-template-columns: 1fr 20px 1fr;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+}
+
+#javascript_code {
+    grid-column-start: 1;
+    grid-row-start: 2;
+}
+
+#table2script {
+    grid-column-start: 2;
+    grid-row-start: 2;
+}
+
+#table2script, #orig2table {
+    display: flex;
+    align-items:center;
+}
+#htmlView {
+    grid-row: span 2 / span 2;
+    grid-column-start: 3;
+    grid-row-start: 1;
+    height: 460px;
+    overflow-y: scroll;
+}
+</style>
+</head>
+
+<body>
+    <div style="box-sizing: border-box;">
+        <iframe src="https://www.photopea.com#%7B%22files%22%3A%5B%5D%2C%22environment%22%3A%7B%7D%7D" id="pp"></iframe>
+        <div id="overlay">
+            <div id="btnSlide">Datos de los partidos</div>
+            <div id="dialog">
+                <div id="original_text">
+                    <h3>Datos de los partidos</h3>
+                    <textarea rows="12" id="partidos">
+[Fecha]
+2025 / 5 / 15-18
+[SENIOR]
+Neskak ; 17 MAI 18:00 ; Egia (Donosita) ; Egia Baztarre Taberna ; Leizaran Lanbroa Taberna
+Mutilak ; 17 MAI 18:99 ; Ispilla (Zumarraga) ; Urola E.K. Crist. Goiherro ; Leizaran Eskubalioa
+[JUBENIK]
+Neskak ; 17 MAI 13:00 ; Alluralde kiroldegia ; Leizaran Eskubalioa ; Goizper Bergara KE 
+Mutilak ; 17 MAI 11:45 ; Alluralde kiroldegia ; MEK Eibar Eskubalioa ;Leizaran Javier Zeramika
+[KADETE neskak]
+Neskak ; 17 MAI 11:45 ; Galtzalaborda (Errenteria) ; Ereintza Beissier ; Leizaran La Salle Berrozpe
+[KADETE mutilak]
+Mutilak ; 17 MAI 15:00 ; Alluralde kiroldegia ; Leizaran Camacho Construcción ; Alkain Bidaso Irun
+Mutilak ; 18 MAI 11:00 ; MEK Eibar Eskubalioa B ; Leizaran Horia
+Mutilak ; 17 MAI 11:00 ; Alluralde kiroldegia ; Leizaran Txuria ; Txindoki Done Pedro</textarea>
+                </div>
+                <div id="orig2table">
+                    <button id="btnTransformPartidos"> >> </button>
+                </div>
+                <div id="javascript_code">
+                    <button style='float: right' id="btnPostScript">Run script</button>
+                    <h3>Código javascript</h3>
+                    <textarea rows="12" id="script"></textarea>
+                </div>
+                <div id="table2script">
+                    <button id="btnDom2Javascript"> &lt;&lt; </button>
+                </div>
+                <div id="htmlView">
+                    <div id="plantillas">
+
+                    </div>
+                    <div id="fechaTabla">
+
+                    </div>
+                    <div id="partidosTabla">
+
+                    </div>    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <textarea id='basecode4Photopea' style='display:none'>
+var doc = app.activeDocument;
+var layers = doc.layers;
+
+
+// Distancia entre categorias
+// T = altura de titulo (50) / DT = distancia entre los bloques de categoria
+// P = altura de partido (133) / DP = distancia entre los partidos
+// C = altura de categoria = T + #P_cat * (DP+P)
+// #C * T + #P_tot * (P+DP) + (#C+1) * DC = 1000
+function initDistancias() {
+    var distC = 0;
+    var distP = 20;
+    var heightT = 50;
+    var heightP = 130;
+
+    var categorias = data.categorias;
+    var numC = categorias.length;
+    var numP = 0;
+    for (var c in categorias) {
+        numP += categorias[c].partidos.length;
+    }
+    distC = Math.ceil((1000 - numC * heightT - numP * (distP + heightP)) / (numC + 1));
+    return { 'dC': distC, 'dP': distP };
+}
+var dists = initDistancias();
+
+function initPosition(dists) {
+    return { 'x': 150, 'y': 370 };
+}
+var pos = initPosition(dists);
+function pos_x() {
+    return pos.x;
+}
+function pos_y() {
+    return pos.y;
+}
+function pos_preshift_y(dy) {
+    pos.y += dy;
+    return pos.y;
+}
+function pos_postshift_y(dy) {
+    var y = pos.y;
+    pos.y += dy;
+    return y;
+}
+
+var colorCategoria = new SolidColor();
+colorCategoria.rgb.hexValue = "67a2eb";
+
+var colorPartidoGris = new SolidColor();
+colorPartidoGris.rgb.hexValue = "d3d0aa";
+
+var colorPartidoRojo = new SolidColor();
+colorPartidoRojo.rgb.hexValue = "f55212";
+
+var colorPartidoAmar = new SolidColor();
+colorPartidoAmar.rgb.hexValue = "ffeb0c";
+
+function categoria_new(json) {
+    var cat = {};
+    cat.titulo = json.titulo;
+    return cat;
+}
+
+function categorias_clear() {
+    var layers = setPartidos.layers;
+    for (l = layers.length - 1; l >= 0; l--) {
+        layers[l].remove();
+    }
+}
+
+/** Altura desde arriba de la capa l1 hasta abajo de la capa l2 */
+function heightFromTo(l1, l2) {
+    return l2.bounds[3].value - l1.bounds[1].value;
+}
+/** Crea la capa "cat_$categoria" */
+function categoria_build(c, categoria) {
+    // Antes de poner el bloque, dejamos un hueco de DeltaCat
+    pos_postshift_y(dists.dC);
+
+    doc.activeLayer = setPartidos;
+    var layer = setPartidos.layers.add();
+    layer.kind = LayerKind.TEXT;
+    layer.name = "cat_" + categoria.titulo;
+
+    var item = layer.textItem;
+    // PARAGRAPHTEXT = 0, POINTTEXT = 1
+    item.kind = TextType.POINTTEXT;
+    item.justification = Justification.LEFT;
+    item.contents = categoria.titulo;
+
+    // Bajamos 50 para poner el titulo
+    item.position = [pos_x(), pos_postshift_y(50)];
+    item.font = 'Poppins-Black';
+    item.size = 72;
+    item.color = colorCategoria;
+}
+/** Crea las capas "par_$cat_$part_{,L,p1,p2}" */
+function partido_build(c, p, part) {
+    // Antes de poner el bloque, dejamos un hueco de Deltapartido
+    pos_postshift_y(dists.dP);
+
+    // Mutila/Neska + horario
+    doc.activeLayer = setPartidos;
+    var lay1 = setPartidos.layers.add();
+    lay1.kind = LayerKind.TEXT;
+    lay1.name = "par_" + c + "_" + p;
+
+    var item = lay1.textItem;
+    item.justification = Justification.LEFT;
+    item.kind = TextType.POINTTEXT;
+    item.contents = part.s + " • " + part.t + " • ";
+    item.position = [pos_x(), pos_y()];
+    item.font = 'Poppins-SemiBold';
+    item.size = 40;
+    item.color = colorPartidoGris;
+
+    var bounds = lay1.bounds;
+    var width = bounds[2].value - bounds[0].value;
+    // alert("> c="+c+" / p="+p+": width=" + width);
+
+    // Lugar
+    var lay2 = setPartidos.layers.add();
+    lay2.kind = LayerKind.TEXT;
+    lay2.name = "par_" + c + "_" + p + "_L";
+
+    var item = lay2.textItem;
+    item.kind = TextType.POINTTEXT;
+    item.justification = Justification.LEFT;
+    item.contents = part.l;
+    item.position = [pos_x() + width + 10, pos_postshift_y(50)];
+    item.font = 'Poppins-SemiBold';
+    item.size = 40;
+    item.color = part.l.includes('Andoain') || part.l.includes('Alluralde') ? colorPartidoRojo : colorPartidoGris;
+
+    // Equipo 1
+    var lay3 = setPartidos.layers.add();
+    lay3.kind = LayerKind.TEXT;
+    lay3.name = "par_" + c + "_" + p + "_t1";
+
+    var item = lay3.textItem;
+    item.kind = TextType.POINTTEXT;
+    item.justification = Justification.LEFT;
+    item.contents = part.t1;
+    item.position = [pos_x(), pos_postshift_y(50)];
+    item.font = 'Poppins-BoldItalic';
+    item.size = 40;
+    item.color = colorPartidoAmar;
+
+    // Equipo 2
+    var lay4 = setPartidos.layers.add();
+    lay4.kind = LayerKind.TEXT;
+    lay4.name = "par_" + c + "_" + p + "_t2";
+
+    var item = lay4.textItem;
+    item.kind = TextType.POINTTEXT;
+    item.justification = Justification.LEFT;
+    item.contents = part.t2;
+    item.position = [pos_x(), pos_postshift_y(50)];
+    item.font = 'Poppins-BoldItalic';
+    item.size = 40;
+    item.color = colorPartidoAmar;
+}
+// Fecha
+var fecha = data['fecha'];
+layers.getByName('hilabetea').textItem.contents = fecha['hilabetea'];
+layers.getByName('egunak').textItem.contents = fecha['egunak'];
+layers.getByName('mes').textItem.contents = fecha['mes'];
+
+// Partidos
+var setPartidos = doc.layerSets.getByName("Partidos");
+var categorias = data.categorias;
+categorias_clear();
+for (var c in categorias) {
+    var categoria = categorias[c];
+    categoria_build(c, categoria);
+
+    var partidos = categoria.partidos;
+    for (var p in partidos) {
+        var partido = partidos[p];
+        partido_build(c, p, partido);
+    }
+}
+    </textarea>
+</body>
+
+</html>
