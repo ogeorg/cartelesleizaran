@@ -51,8 +51,8 @@ var meses = [
 var plantillas = {
 //    'car': ['Caratula', 'http://ogeorg.com/leizaran/plantilla_caratula.psd'],
 //    'hor': ['Horarios', 'http://ogeorg.com/leizaran/plantilla_horarios.psd'],
-    'car': ['Caratula', 'https://raw.githubusercontent.com/ogeorg/cartelesleizaran/44572ec530ef4540ed189c57416027206e0fb96b/plantilla_caratula.psd'],
-    'hor': ['Horarios', 'https://raw.githubusercontent.com/ogeorg/cartelesleizaran/44572ec530ef4540ed189c57416027206e0fb96b/plantilla_horarios.psd'],
+    'car': ['Caratula', 'https://rawcdn.githack.com/ogeorg/cartelesleizaran/refs/heads/main/plantilla_caratula.psd'],
+    'hor': ['Horarios', 'https://rawcdn.githack.com/ogeorg/cartelesleizaran/refs/heads/main/plantilla_horarios.psd'],
 //    't_1': ['(t)Neon', 'https://raw.githubusercontent.com/ogeorg/cartelesleizaran/d250cd62b7e0f8acfb6387e330d57832b8ae2bed/test_neon.psd'],
 //    't_2': ['(t)SawSign', 'https://raw.githubusercontent.com/ogeorg/cartelesleizaran/d250cd62b7e0f8acfb6387e330d57832b8ae2bed/test_sawsign.psd'],
 //    ['lag', 'Amistoso', 'http://ogeorg.com/leizaran/plantilla_amistoso.psd'],
@@ -301,3 +301,4 @@ $(document).ready(function () {
 
     // updatePlayground();
 });    
+
