@@ -1,16 +1,17 @@
-* {
+
+html, body, div, h3, button {
     margin: 0;
     padding: 0;
 }
-
-
 body {
     font-family: "Open Sans", sans-serif;
     font-size: 1.05em;
     color: rgba(0, 0, 0, 0.8);
     background-color: rgb(253, 253, 253);
 }
-
+h3 {
+    background-color: #d3b276;
+}
 #overlay {
     border: solid black 1px;
     width: 100%;
@@ -26,10 +27,6 @@ body {
     font-weight: bold;
     width:100%;
     text-align: center;
-}
-
-#dialog {
-    display: none;
 }
 
 .table {
@@ -62,18 +59,28 @@ body {
 #partidos, #script {
     width: 100%;
 }
-#partidosTabla {
-    display: inline-block;
+
+.dataTableContainer {
+    padding: 5px 15px 5px 5px;
 }
-#partidosTabla th, #partidosTabla td{
+table.dataTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+table.dataTable th, table.dataTable td{
     padding: 2px;
+    border: 1px solid black;
 }
+table.dataTable thead th {
+    background-color: #c28c29 ;
+}
+
 pre {
     /*  for code in API spec. */
     background-color: #f1f1f1;
     padding: 0.5em 1em;
     margin: 1em 0;
-    white-space: pre-wrap;
+    x-white-space: pre-wrap;
     /*  break too long lines for small screens  */
-    x-overflow: visible;
+    overflow-x: auto;
 }
