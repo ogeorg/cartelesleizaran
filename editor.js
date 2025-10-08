@@ -54,6 +54,7 @@ var plantillas = {
     //    ['lag', 'Amistoso', 'http://ogeorg.com/leizaran/plantilla_amistoso.psd'],
 };
 
+function produceNothing() { }
 /**
  * Parsea el texto de datos de partidos y crea un DOM
  * 
@@ -63,13 +64,12 @@ var plantillas = {
 function parsePartidos(txtPartidos) {
     var dom = {}
     function NullState() {
-        this.produce = function () { }
+        this.produce = produceNothing;
     }
     function FechaHeaderState() {
         this.fecha = {};
         dom.fecha = this.fecha;
-        this.produce = function () {
-        }
+        this.produce = produceNothing;
     }
     function InFechaState(prevstate, line) {
         this.fecha = prevstate.fecha;
@@ -112,8 +112,10 @@ function parsePartidos(txtPartidos) {
     }
     function nextState(prevstate, line) {
         line = line.trim();
-        if (!line)
+        if (!line) {
+            prevstate.produce = produceNothing;
             return prevstate;
+        }
         var res = line.match(/\[([\s\w]+)\]/);
         if (res) {
             var seccion = res[1];
@@ -215,12 +217,13 @@ function transformDom2Javascript(dom) {
     var dom2 = {};
     dom2.fecha = dom.fecha;
     dom2.categorias = [];
-    for (var categoria of dom.categorias) {
-        var titulo = categoria.titulo.toLowerCase();
-        var $cb = $(`input[name='${titulo}']`);
-        if ($cb.is(':checked'))
-            dom2.categorias.push(categoria);
-    }
+    if (dom.categorias)
+        for (var categoria of dom.categorias) {
+            var titulo = categoria.titulo.toLowerCase();
+            var $cb = $(`input[name='${titulo}']`);
+            if ($cb.is(':checked'))
+                dom2.categorias.push(categoria);
+        }
     var json = "var data = " + JSON.stringify(dom2) + "\n\n";
     var script = $("#basecode4Photopea").val();
     $("#script").val(json + script);
@@ -512,8 +515,8 @@ function handleFileSelecting(evt) {
     var files = evt.target.files; // FileList object
     for (var i = 0, f; f = files[i]; i++) {
         var reader = new FileReader();
-        reader.onload = (function(theFile) {
-            return function(e) {
+        reader.onload = (function (theFile) {
+            return function (e) {
                 var content = e.target.result;
                 if (content) {
                     readConfigs(content);
@@ -527,7 +530,7 @@ function handleFileSelecting(evt) {
 function readConfigs(content) {
     const data = JSON.parse(content);
     const keys = Object.keys(data);
-    alert("Las claves son\n- "+keys.join("\n- "));
+    alert("Las claves son\n- " + keys.join("\n- "));
 }
 $(document).ready(function () {
     frame = document.getElementById("pp");
