@@ -5,6 +5,12 @@
 <head>
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, initial-scale=1.0" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <script src="plantillas.js"></script>
+    <script src="parser.js"></script>
+    <script src="partidos.js"></script>
+    <script src="configurations.js"></script>
+    <script src="parameters.js"></script>
     <script src="editor.js"></script>
     <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
 
@@ -48,6 +54,7 @@
         #saveConfigAsRightPanel,
         #loadConfigRightPanel,
         #helpRightPanel,
+        #paramsRightPanel,
         #uploadConfigs {
             display: none;
         }
@@ -93,7 +100,10 @@
                 <div id="javascript_code">
                     <h3>Código javascript</h3>
                     <textarea rows="12" id="script"></textarea>
-                    <button style='float: right' id="btnPostScript">Run script</button>
+                    <div style='float: right'>
+                        <button id="btnShowScriptParams">Parametros...</button>
+                        <button id="btnPostScript">Run script</button>
+                    </div>
                 </div>
                 <div id="table2script">
                     <button id="btnDom2Javascript"> &lt;&lt; </button>
@@ -132,21 +142,8 @@
 
                         </pre>
                     </div>
-                    <div id="saveConfigAsRightPanel">
-                        <h3>Guardar como...</h3>
-                        <!-- 
-                        Show one input[text], and on save, checks whether
-                        the name exists.  If it does not exist, saves.  If it
-                        exists, put a message and if confirmed, saves 
-                        -->
-                        <div>
-                            <input id="txtConfigNameSaveConfigAs" type="text" name="configName" />
-                        </div>
-                        <div>
-                            <button id="btnSaveSaveConfigAs">Guardar</button>
-                            <button id="btnCancelSaveConfigAs">Cancel</button>
-                        </div>
-                    </div>
+
+                    <!-- Panel de help -->
                     <div id="helpRightPanel">
                         <h3>Ayuda</h3>
                         <p>
@@ -190,14 +187,14 @@ Neskak ; 17 MAI 18:00 ; Egia (Donosita) ; Egia Baztarre Taberna ; Leizaran Lanbr
 Mutilak ; 17 MAI 18:99 ; Ispilla (Zumarraga) ; Urola E.K. Crist. Goiherro ; Leizaran Eskubalioa</pre>
                                                 <p>Los datos de goles (opcionales) servirán para la platilla de resultados.</p>
                         <div>
-                            <button id="btnCerrarHelp">Cerrar</button>
+                            <button class="btnCerrarRightPanel">Cerrar</button>
                         </div>
                     </div>
-                    <div id="partidosRightPanel">
-                        <div id="plantillas"></div>
-                        <div id="fechaTabla" class="dataTableContainer"></div>
-                        <div id="partidosTabla" class="dataTableContainer"></div>
-                    </div>
+                    <!-- Fin del panel de help -->
+
+                    <!-- Fin del panel de parametros -->
+
+
                 </div>
             </div>
         </div>
@@ -206,7 +203,10 @@ Mutilak ; 17 MAI 18:99 ; Ispilla (Zumarraga) ; Urola E.K. Crist. Goiherro ; Leiz
     <textarea id='basecode4Photopea' style='display:none'>
 var doc = app.activeDocument;
 var layers = doc.layers;
-
+// Los parametros son:
+// + offsettop
+// + offsetright
+var PARAMS = $$PARAMS$$;
 
 // Distancia entre categorias
 // T = altura de titulo (50) / DT = distancia entre los bloques de categoria
@@ -231,7 +231,7 @@ function initDistancias() {
 var dists = initDistancias();
 
 function initPosition(dists) {
-    return { 'x': 130, 'y': 350 };
+    return { 'x': PARAMS.offsetright, 'y': PARAMS.offsettop };
 }
 var pos = initPosition(dists);
 function pos_x() {
