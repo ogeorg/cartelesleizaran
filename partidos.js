@@ -60,7 +60,7 @@ function makePlantillas() {
 function $makeSelectPlantillas() {
     var options = '';
     for (var pl in PLANTILLAS) {
-        options += `<option value='${pl}'>${PLANTILLAS[pl][0]}</option>`;
+        options += `<option value='${pl}'>${PLANTILLAS[pl].title}</option>`;
     }
     return $(`<select id='selPlantillas'>${options}</select> `);
 }
@@ -85,7 +85,10 @@ function getPartidosPanel() {
 function initPartidos() {
     var $partidosRightPanel = getPartidosPanel();
 }
-
+function onShowPartidosOnRight() {
+    $("#rightPanel").children().hide();
+    getPartidosPanel().show();
+}
 /**
  * Carga una plantilla
  */
@@ -93,7 +96,7 @@ function runLoadPlantilla() {
     // Recoge el nombre de la plantilla a cargar
     var plKey = $('#selPlantillas').find(":selected").val();
     var plantilla = PLANTILLAS[plKey];
-    var plUrl = plantilla[1];
+    var plUrl = plantilla.url;
     var m = plUrl.match(/\/([\w]+)\.psd/);
     if (m) {
         plName = m[1];
