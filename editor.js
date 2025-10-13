@@ -63,8 +63,8 @@ function transformDom2Javascript(dom) {
         }
     var json = "var data = " + JSON.stringify(dom2) + "\n\n";
     var script = $("#basecode4Photopea").val();
-
-    script = script.replace("$$PARAMS$$", getParamsAsStr());
+    var plantilla = $("#selPlantillas").val();
+    script = script.replace("$$PARAMS$$", getParamsAsStr(plantilla));
     $("#script").val(json + script);
 }
 
@@ -129,10 +129,7 @@ function onTransformPartidos() {
         onShowPartidosOnRight();
     });
 }
-function onShowPartidosOnRight() {
-    $("#rightPanel").children().hide();
-    $("#partidosRightPanel").show();
-}
+
 
 // ----------------------------------------------
 // Help panel
@@ -159,19 +156,15 @@ $(document).ready(function () {
     $("#btnTransformPartidos").on("click", onTransformPartidos);
     $("#btnPostScript").on('click', runScript);
     $("#btnShowLoadConfig").on('click', onShowConfigsOnRight);
-    $("#btnCancelLoadConfig").on('click', onShowPartidosOnRight);
-    $("#btnShowSaveConfigAs").on('click', onShowSaveConfigAsOnRight);
-    $("#btnSaveSaveConfig").on('click', onSaveSaveConfig);
     $("#btnShowHelp").on('click', onShowHelp);
-    $("#btnDownloadConfigs").on('click', onDownloadConfigs);
-    $("#btnUploadConfigs").on('click', onUploadConfigs);
-    $("#btnCancelUploadConfigs").on('click', onCancelUploadConfigs);
 
     // Parametros
     $("#btnShowScriptParams").on('click', onShowScriptParamsOnRight);
+    $("#btnShowDataSources").on('click', onShowDataSources);
 
     $(".btnCerrarRightPanel").on('click', onShowPartidosOnRight);
 
+    initConfigurations();
     initPartidos();
     slideDown();
 

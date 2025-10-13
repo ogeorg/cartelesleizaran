@@ -58,6 +58,8 @@ h3 {
 
 #partidos, #script {
     width: 100%;
+    overflow-x: scroll;
+    white-space: nowrap;
 }
 
 .dataTableContainer {

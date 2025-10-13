@@ -64,7 +64,7 @@ function categoria_new(json) {
 
 function categorias_clear() {
     var layers = setPartidos.layers;
-    for (l = layers.length - 1; l >= 0; l--) {
+    for (var l = layers.length - 1; l >= 0; l--) {
         layers[l].remove();
     }
 }

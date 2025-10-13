@@ -1,7 +1,10 @@
-const PARAMS = {
-    offsettop : { dflt: "350", title: "Espacio encima" },
-    offsetright : { dflt: "130", title: "Espacio a al deecha" },
+const PARAM_DEFINITIONS = {
+    offsettop: { dflt: "350", title: "Espacio encima" },
+    offsetright: { dflt: "130", title: "Espacio a al derecha" },
+    code: { dflt: "", title: "Codigo", type: 'textarea' },
 }
+const PARAMS_NOT2SCRIPT = ['__useDefault__', 'code'];
+
 const PLANTILLA_DFLT_KEY = '__default__';
 const PLANTILLA_DFLT_NAME = 'Valores por defecto';
 const PARAMS_SEL_PLANTILLAS_ID = 'params-selPlantillas';
@@ -42,8 +45,7 @@ function whenCheckboxParamsUseDefault(checked) {
     else
         $(`#${PARAMS_LIST_PARAMS}`).show();
 }
-function getParametersPanel() 
-{
+function getParametersPanel() {
     var $pnl = $("#paramsRightPanel");
     if ($pnl.length == 0) {
         var $pnl = $("<div id='paramsRightPanel'>").appendTo($('#rightPanel'));
@@ -59,7 +61,7 @@ function getParametersPanel()
 
         $pnl.append("<p>Panel de parametros para <span style='font-style:italic' id='paramsPlantillaTitle'></span></p>");
 
-        var $divUseDflt =  $(`<div id='${PARAMS_DIV_USE_DFLT_ID}'></div>`).appendTo($pnl);
+        var $divUseDflt = $(`<div id='${PARAMS_DIV_USE_DFLT_ID}'></div>`).appendTo($pnl);
         $(`<input type='checkbox' id='${PARAMS_CHK_USE_DFLT_ID}'>`) //
             .on('change', onChangeCheckboxParamsUseDefault) //
             .appendTo($divUseDflt);
@@ -67,8 +69,8 @@ function getParametersPanel()
 
         // Lista de parametros
         var $list = $(`<p id='${PARAMS_LIST_PARAMS}'></p>`).appendTo($pnl);
-        for(var p in PARAMS) {
-            $(`<div data-param="${p}" data-default="${PARAMS[p].dflt}" data-title="${PARAMS[p].title}"></div>`) //
+        for (var p in PARAM_DEFINITIONS) {
+            $(`<div data-param="${p}" data-default="${PARAM_DEFINITIONS[p].dflt}" data-title="${PARAM_DEFINITIONS[p].title}"></div>`) //
                 .appendTo($list);
         }
 
@@ -101,12 +103,14 @@ function onSaveScriptParamsOnRight() {
     var allParams = loadParams();
     var params = {};
     params[PARAMS_USE_DFLT_KEY] = $(`#${PARAMS_CHK_USE_DFLT_ID}`).is(':checked');
-    $(`#${PARAMS_LIST_PARAMS} input`).each(function() {
-        var $this = $(this);
-        var param = $this.data('param');
-        var value = $this.val();
-        params[param] = value;
-    });
+    $(`#${PARAMS_LIST_PARAMS}`)
+        .find('input[data-param], textarea[data-param]')
+        .each(function () {
+            var $this = $(this);
+            var param = $this.data('param');
+            var value = $this.val();
+            params[param] = value;
+        });
     allParams[getSelectedPlantillasParamsKey()] = params;
     saveParams(allParams);
     initParamsPanel();
@@ -116,14 +120,15 @@ function loadParams() {
     if (params == null) params = {};
     return params;
 }
-function getParamsAsStr() {
+function getParamsAsStr(plantilla) {
+    var params = loadParams();
+    params = params[plantilla];
     var res = [];
-    $(`#${PARAMS_LIST_PARAMS} input[data-param]`).each(function() {
-        var $this = $(this);
-        var param = $this.data('param');
-        var value = $this.val();
-        res.push(`${param}: ${value}`);
-    })
+    for(var p in params) {
+        if (PARAMS_NOT2SCRIPT.includes(p))
+            continue;
+        res.push(`${p}: ${params[p]}`);
+    }
     return '{' + res.join(', ') + '}';
 }
 function saveParams(params) {
@@ -133,25 +138,33 @@ function saveParams(params) {
 function initParamsPanel() {
     var allParams = loadParams();
     var params = allParams[getSelectedPlantillasParamsKey()] ?? {};
-    
+
     var useDefault = params[PARAMS_USE_DFLT_KEY] ?? false;
     $(`#${PARAMS_CHK_USE_DFLT_ID}`).prop('checked', useDefault);
     whenCheckboxParamsUseDefault(useDefault);
 
-    $(`#${PARAMS_LIST_PARAMS} div[data-param]`).each(function() {
+    $(`#${PARAMS_LIST_PARAMS} div[data-param]`).each(function () {
         var $this = $(this);
         var param = $this.data('param');
         var title = $this.data('title');
-        var dflt =  $this.data('default');
+        var dflt = $this.data('default');
         var value = params[param] ?? dflt;
         $this.empty();
-        $this.append(`<div style='display: inline-block; width: 200px'>${title}<div>`);
-        $this.append(`<input data-param='${param}' data-value='${value}' type='text' value='${value}'/> (${param} = ${value})`);
+        var param_def = PARAM_DEFINITIONS[param];
+        if (param_def.type == 'textarea') {
+            $this.append(`<div>${title}</div>`);
+            $(`<textarea data-param='${param}' style='width: 100%; box-sizing: border-box;' rows='10'></textarea>`) //
+                .appendTo($this)
+                .val(value);
+        } else {
+            $this.append(`<div style='display: inline-block; width: 200px'>${title}</div>`);
+            $this.append(`<input data-param='${param}' data-value='${value}' type='text' value='${value}'/> (${param} = ${value})`);
+        }
     })
-} 
+}
 
 function onUndoParamChange() {
-    $(`#${PARAMS_LIST_PARAMS} input[data-param]`).each(function() {
+    $(`#${PARAMS_LIST_PARAMS} input[data-param]`).each(function () {
         var $this = $(this);
         var value = $this.data('value');
         $this.val(value);

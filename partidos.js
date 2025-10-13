@@ -10,6 +10,11 @@ function transformDom2Html(dom) {
     makeFecha(dom.fecha);
     makeCategorias(dom.categorias);
 }
+function makeLinkedNameEquipo(teamName, cat, nm) {
+    var equipo = getEquipoByName(teamName, cat, nm);
+    equipo = equipo ? `<a href='${equipo.urls[0]}' target='_blank'>${teamName}</a>`: teamName;
+    return equipo;
+}
 function makeCategorias(categorias) {
     var $partidosTabla = $('#partidosTabla');
     function makeCategoria(categoria) {
@@ -28,8 +33,10 @@ function makeCategorias(categorias) {
         for (var partido of categoria.partidos) {
             var g1 = hayGoles ? ('g1' in partido ? `<td>${partido.g1}</td>` : '<td></td>') : "";
             var g2 = hayGoles ? ('g2' in partido ? `<td>${partido.g2}</td>` : '<td></td>') : "";
-            $body.append(`<tr><td>${partido.s}</td><td>${partido.t}</td><td>${partido.l}</td><td>${partido.t1}</td>${g1}</tr>`);
-            $body.append(`<tr><td colspan='3' ><td>${partido.t2}</td>${g2}</tr>`);
+            var equipo1 = makeLinkedNameEquipo(partido.t1, categoria.titulo, partido.s);
+            var equipo2 = makeLinkedNameEquipo(partido.t2, categoria.titulo, partido.s);
+            $body.append(`<tr><td>${partido.s}</td><td>${partido.t}</td><td>${partido.l}</td><td>${equipo1}</td>${g1}</tr>`);
+            $body.append(`<tr><td colspan='3' ><td>${equipo2}</td>${g2}</tr>`);
         }
     }
     $partidosTabla.empty();

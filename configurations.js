@@ -45,6 +45,16 @@ function get$tr(btn) {
 //////////////////////////////////////////////////
 const CLASS_BTN_SEE_CONFIG = 'btnSeeConfig';
 
+function initConfigurations() {
+    $("#btnLoadDefaultLoadConfig").on('click', onLoadDefaultConfig);
+    $("#btnMakeNextConfig").on('click', onMakeNextConfig);
+    $("#btnDownloadConfigs").on('click', onDownloadConfigs);
+    $("#btnUploadConfigs").on('click', onUploadConfigs);
+    $("#btnCancelUploadConfigs").on('click', onCancelUploadConfigs);
+    $("#btnCancelLoadConfig").on('click', onShowPartidosOnRight);
+    $("#btnShowSaveConfigAs").on('click', onShowSaveConfigAsOnRight);
+    $("#btnSaveSaveConfig").on('click', onSaveSaveConfig);
+}
 /** Mostra una configuracion concreta.  Tambien se llama para refrescar el panel */
 function showConfigsOnRight(selectedKey) {
     $("#rightPanel").children().hide();
@@ -117,11 +127,44 @@ function showConfigsOnRight(selectedKey) {
         });
     })
     $("#loadConfigRightPanel").show();
-    $("#btnLoadDefaultLoadConfig").on('click', onLoadDefaultConfig);
 }
 function onLoadDefaultConfig() {
     // Load config to partidos
     $("#partidos").val(configEjemplo);
+    onTransformPartidos();
+    onShowPartidosOnRight();
+}
+function onMakeNextConfig() {
+    var partidosByCat = {};
+    for(var c in CATEGORIAS) {
+        partidosByCat[c] = [];
+    }
+
+    var date = new Date();
+    // proximo sabado
+    date.setDate(date.getDate() + 6 - date.getDay());
+    var y = date.getFullYear();
+    var m = date.getMonth() + 1;
+    var d = date.getDate();
+    var fechaJornada = `${y} / ${m} / ${d}`;
+    var fechaPartido = `${meses[m][2].toUpperCase()} ${d}, hh:mm`;
+
+    for(var e in EQUIPOS) {
+        var cat = e.substring(0, 3);
+        var sex = e.substring(4, 7);
+        var partido = `${SEXOS[sex]} ; ${fechaPartido} ; $$LUGAR$$ ; ${EQUIPOS[e].name}; $$ADVERSARIO$$ ;`;
+        partidosByCat[cat].push(partido);
+    }
+    
+    var config = `[Fecha]\n${fechaJornada}`;
+    for(var c in partidosByCat) {
+        config += `\n[${CATEGORIAS[c]}]\n`;
+        var partidos = partidosByCat[c];
+        for(var partido of partidos) {
+            config += partido + '\n';
+        }
+    }
+    $("#partidos").val(config);
     onTransformPartidos();
     onShowPartidosOnRight();
 }
@@ -221,7 +264,7 @@ function getSaveConfigAsRightPanel() {
         $(`<button id='btnCancelSaveConfigAs'>Cancel</button>`) //
             .on('click', onShowPartidosOnRight) //
             .appendTo($btns);
-        $pnl.append(btns);
+        $pnl.append($btns);
         $('#rightPanel').append($pnl);
     }
     return $pnl;
