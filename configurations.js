@@ -45,19 +45,63 @@ function get$tr(btn) {
 //////////////////////////////////////////////////
 const CLASS_BTN_SEE_CONFIG = 'btnSeeConfig';
 
+function get$UploadConfigPanel() {
+    var $pnl = $("#uploadConfigs");
+    if ($pnl.length == 0) {
+        $pnl = $("<div id='uploadConfigs' />");
+
+        var $inputs = $("<div></div>").appendTo($pnl);
+        $(`<input type="file" id="files" name="files[]" />`) //
+            .appendTo($inputs);
+
+        var $btns = $("<div class='buttonbox'></div>").appendTo($pnl);
+        $(`<button id="btnCancelUploadConfigs">Cancel</button>`) //
+            .on('click', onCancelUploadConfigs) //
+            .appendTo($btns);
+    }
+    return $pnl;
+}
+
+function get$ConfigurationPanel() {
+    var $pnl = $("#loadConfigRightPanel");
+    if ($pnl.length == 0) {
+        $pnl = $("<div id='dataSourcesPanel'>");
+        $pnl.append("<h2>Configuraciones</h2>");
+        $pnl.append(`<table id="configsList"><thead><tr><th>Clave</th><th>Acciones</th></tr></thead><tbody></tbody></table>`);
+
+        var $btns = $("<div class='buttonbox'></div>").appendTo($pnl);
+        $(`<button id="btnLoadDefaultLoadConfig">Cargar ejemplo</button>`) //
+            .on('click', onLoadDefaultConfig) //
+            .appendTo($btns);
+        $(`<button id="btnMakeNextConfig">Crear jornada</button>`) //
+            .on('click', onMakeNextConfig) //
+            .appendTo($btns);
+        $(`<button id="btnDownloadConfigs">Descargar todo</button>`) //
+            .on('click', onDownloadConfigs) //
+            .appendTo($btns);
+        $(`<button id="btnUploadConfigs">Cargar un fichero</button>`) //
+            .on('click', onUploadConfigs) //
+            .appendTo($btns);
+        $(`<button id="btnCancelLoadConfig">Cancel</button>`) //
+            .on('click', onShowPartidosOnRight) //
+            .appendTo($btns);
+
+        get$UploadConfigPanel().appendTo($pnl);
+        $(`<pre id="configPreview"></pre>`).appendTo($pnl);
+        $('#right_panel').append($pnl);
+    }
+    return $pnl;
+}
+
 function initConfigurations() {
-    $("#btnLoadDefaultLoadConfig").on('click', onLoadDefaultConfig);
-    $("#btnMakeNextConfig").on('click', onMakeNextConfig);
-    $("#btnDownloadConfigs").on('click', onDownloadConfigs);
-    $("#btnUploadConfigs").on('click', onUploadConfigs);
-    $("#btnCancelUploadConfigs").on('click', onCancelUploadConfigs);
-    $("#btnCancelLoadConfig").on('click', onShowPartidosOnRight);
     $("#btnShowSaveConfigAs").on('click', onShowSaveConfigAsOnRight);
     $("#btnSaveSaveConfig").on('click', onSaveSaveConfig);
 }
+
 /** Mostra una configuracion concreta.  Tambien se llama para refrescar el panel */
 function showConfigsOnRight(selectedKey) {
-    $("#rightPanel").children().hide();
+    $("#right_panel").children().hide();
+    var $pnl = get$ConfigurationPanel();
     var configs = getConfigs();
 
     // First we create the table
@@ -71,7 +115,7 @@ function showConfigsOnRight(selectedKey) {
         var b2 = `<button class='btnLoadConfig'>Cargar</button>`;
         var b3 = `<button class='btnRemoveConfig'>Eliminar</button>`;
         var b4 = `<button class='btnRenameConfig'>Renombrar</button>`;
-        var $tr = $(`<tr data-key='${c}'><td class='configKey'>${c}</td><td>${b1} ${b2} ${b3} ${b4}</td></tr>`).appendTo($body);
+        var $tr = $(`<tr data-key='${c}'><td class='configKey'>${c}</td><td class='buttonbox'>${b1}${b2}${b3}${b4}</td></tr>`).appendTo($body);
         if (c == selectedKey) {
             $currTr = $tr;
             $currTr.addClass('viewedConfig');
@@ -86,7 +130,8 @@ function showConfigsOnRight(selectedKey) {
         $currTr = get$tr(this);
         $currTr.addClass('viewedConfig');
         var key = $currTr.data('key');
-        $("#configPreview").text(configs[key]);
+        var config = configs[key];
+        $("#configPreview").text(config);
     });
     $('.btnLoadConfig').on('click', function () {
         var key = get$tr(this).data('key');
@@ -126,13 +171,12 @@ function showConfigsOnRight(selectedKey) {
             }
         });
     })
-    $("#loadConfigRightPanel").show();
+    $pnl.show();
 }
 function onLoadDefaultConfig() {
     // Load config to partidos
     $("#partidos").val(configEjemplo);
     onTransformPartidos();
-    onShowPartidosOnRight();
 }
 function onMakeNextConfig() {
     var partidosByCat = {};
@@ -166,7 +210,6 @@ function onMakeNextConfig() {
     }
     $("#partidos").val(config);
     onTransformPartidos();
-    onShowPartidosOnRight();
 }
 /** Actions on loading a config */
 function loadConfig(key, config) {
@@ -176,7 +219,6 @@ function loadConfig(key, config) {
     // Enable button "Save"
     $("#btnShowSaveConfig").show();
     onTransformPartidos();
-    onShowPartidosOnRight();
 }
 function setCurrentKey(key) {
     currentConfigKey = key;
@@ -252,12 +294,12 @@ function getSaveConfigAsRightPanel() {
     var $pnl = $("#saveConfigAsRightPanel");
     if ($pnl.length == 0) {
         $pnl = $("<div id='saveConfigAsRightPanel'>");
-        $pnl.append("<h3>Guardar como...</h3>");
+        $pnl.append("<h2>Guardar como...</h2>");
         // Show one input[text], and on save, checks whether
         // the name exists.  If it does not exist, saves.  If it
         // exists, put a message and if confirmed, saves 
         $pnl.append("<div><input id='txtConfigNameSaveConfigAs' type='text' name='configName' /></div>");
-        var $btns = $("<div></div>");
+        var $btns = $("<div class='buttonbox'></div>");
         $(`<button id='btnSaveSaveConfigAs'>Guardar</button>`) //
             .on('click', onSaveSaveConfigAs) //
             .appendTo($btns);
@@ -265,12 +307,12 @@ function getSaveConfigAsRightPanel() {
             .on('click', onShowPartidosOnRight) //
             .appendTo($btns);
         $pnl.append($btns);
-        $('#rightPanel').append($pnl);
+        $('#right_panel').append($pnl);
     }
     return $pnl;
 }
 function onShowSaveConfigAsOnRight() {
-    $("#rightPanel").children().hide();
+    $("#right_panel").children().hide();
     getSaveConfigAsRightPanel().show();
 }
 function onSaveSaveConfigAs() {

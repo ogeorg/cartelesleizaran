@@ -113,117 +113,157 @@ const EQUIPOS = {
   }
 }
 const CATEGORIAS = {
-    'sen': 'SENIOR',
-    'jub': 'JUBENIL',
-    'kad': 'KADETE',
-    'inf': 'INFANTIL'
+  'sen': 'SENIOR',
+  'jub': 'JUBENIL',
+  'kad': 'KADETE',
+  'inf': 'INFANTIL'
 }
 const SEXOS = {
-    'nes': 'Neskak',
-    'mut': 'Mutilak',
+  'nes': 'Neskak',
+  'mut': 'Mutilak',
 }
-const EQUIPOS_LIST_ID = 'equipos-list';
 
-function getCategoriaKeyByName(name) {
-    for (var c in CATEGORIAS) {
-        if (CATEGORIAS[c] == name)
-            return c;
-    }
-    return undefined;
-}
-function getSexoKeyByName(name) {
-    for (var s in SEXOS) {
-        if (SEXOS[s] == name)
-            return s;
-    }
-    return undefined;
-}
-function getEquipoByName(name, cat, nm) {
-    cat = getCategoriaKeyByName(cat);
-    nm = getSexoKeyByName(nm);
-    for(e in EQUIPOS) {
-        if (EQUIPOS[e].name == name) {
-            if (e.startsWith(cat + ":" + nm))
-                return EQUIPOS[e];
-        }
-    }
-    return undefined;
-}
-function onEquiposSave() {
-    var equipos = {};
-    $(`div[data-equipo]`)
-        .each(function () {
-            var $this = $(this);
-            var e = $this.data('equipo');
-            var $urls = $this.find('input');
-            var equipo = {
-                equipo: EQUIPOS[e].equipo,
-                name:  EQUIPOS[e].name,
-                urls: [$urls[0].value, $urls[1].value]
-            };
-            equipos[e] = equipo;
-        });
-    saveEquipos(equipos);
-}
-function loadEquipos() {
+function EquiposPersistor() {
+  this.saveEquipos = function(equipos) {
+    localStorage.setItem("equipos", JSON.stringify(equipos));
+  }
+  this.loadEquipos = function() {
     var equipos = JSON.parse(localStorage.getItem("equipos"));
     if (equipos == null) params = EQUIPOS;
     return equipos;
+  }
 }
-function saveEquipos(equipos) {
-    localStorage.setItem("equipos", JSON.stringify(equipos));
-}
+function EquiposService() {
+  const persistor = new EquiposPersistor();
+  const EQUIPOS_LIST_ID = 'equipos-list';
+  function updateDataSourceLink($link, url) {
+    if (url) {
+      $link.attr('href', url).show();
+    } else {
+      $link.attr('href', '#').hide();
+    }
+  }
 
-function updateDataSourceLink($link, url) {
-                        if (url) {
-                            $link.attr('href', url).show();
-                        } else {
-                            $link.attr('href', '#').hide();
-                        }
-}
-function getDataSourcesPanel() {
-    var $pnl = $("#dataSourcesPanel");
+  /**
+   * Guarda los datos de los equipos
+   */
+  function onEquiposSave() {
+    var equipos = {};
+    $(`div[data-equipo]`).each(function () {
+      var $this = $(this);
+      var e = $this.data('equipo');
+      var $urls = $this.find('input');
+      var equipo = {
+        equipo: EQUIPOS[e].equipo,
+        name: EQUIPOS[e].name,
+        urls: [$urls[0].value, $urls[1].value]
+      };
+      equipos[e] = equipo;
+    });
+    persistor.saveEquipos(equipos);
+  }
+
+  /**
+   * Devuelve el panel jquery, lo crea si necesario
+   * @returns 
+   */
+  function getEquiposPanel() {
+    var $pnl = $("#equiposPanel");
     if ($pnl.length == 0) {
-        $pnl = $("<div id='dataSourcesPanel'>");
-        $pnl.append("<h3>Equipos...</h3>");
+      $pnl = $("<div id='equiposPanel'>");
+      $pnl.append("<h2>Equipos...</h2>");
 
-        // Lista de equipos
-        var $list = $(`<p id='${EQUIPOS_LIST_ID}'></p>`).appendTo($pnl);
-        var equipos = loadEquipos();
-        for (var e in equipos) {
-            var equipo = equipos[e];
-            var $line = $(`<div data-equipo="${e}"></div>`) //
-                .appendTo($list);
-            $(`<div>${equipo.equipo}: <em>${equipo.name}</em></div>`) //
-                .appendTo($line);
-            for(var url of equipo.urls) {
-                var $urlline = $("<div></div>").appendTo($line);
-                $(`<input style='width: 400px'></div>`) //
-                    .val(url) //
-                    .on('change', function () {
-                        updateDataSourceLink($(this).next(), this.value);
-                    })
-                    .appendTo($urlline);
-                var $link = $(`<a rel='noopener noreferrer' target='_blank'>[ver]</a>`) //
-                    .appendTo($urlline);
-                updateDataSourceLink($link, url);
-            }
+      // Lista de equipos
+      var $list = $(`<p id='${EQUIPOS_LIST_ID}'></p>`).appendTo($pnl);
+      var equipos = persistor.loadEquipos();
+      for (var e in equipos) {
+        var equipo = equipos[e];
+        var $line = $(`<div data-equipo="${e}"></div>`) //
+          .appendTo($list);
+        $(`<div>${equipo.equipo}: <em>${equipo.name}</em></div>`) //
+          .appendTo($line);
+        for (var url of equipo.urls) {
+          var $urlline = $("<div></div>").appendTo($line);
+          $(`<input style='width: 400px'></div>`) //
+            .val(url) //
+            .on('change', function () {
+              updateDataSourceLink($(this).next(), this.value);
+            })
+            .appendTo($urlline);
+          var $link = $(`<a rel='noopener noreferrer' target='_blank'>[ver]</a>`) //
+            .appendTo($urlline);
+          updateDataSourceLink($link, url);
         }
+      }
 
-        var $btns = $("<div></div>");
-        $(`<button>Guardar</button>`) //
-            .on('click', onEquiposSave) //
-            .appendTo($btns);
-        $(`<button>Cerrar</button>`) //
-            .on('click', onShowPartidosOnRight) //
-            .appendTo($btns);
-        $pnl.append($btns);
-        $('#rightPanel').append($pnl);
+      var $btns = $("<div class='buttonbox'></div>");
+      $(`<button>Guardar</button>`) //
+        .on('click', onEquiposSave) //
+        .appendTo($btns);
+      $(`<button>Cerrar</button>`) //
+        .on('click', onShowPartidosOnRight) //
+        .appendTo($btns);
+      $pnl.append($btns);
+      $('#right_panel').append($pnl);
     }
     return $pnl;
-}
+  }
 
-function onShowDataSources() {
-    $("#rightPanel").children().hide();
-    getDataSourcesPanel().show();
+  /**
+   * Devuelve la clave de categoría 
+   * @param {*} name (SENIOR, ...)
+   * @returns (sen, jub, kad, inf)
+   */
+  function getCategoriaKeyByName(name) {
+    for (var c in CATEGORIAS) {
+      if (CATEGORIAS[c] == name)
+        return c;
+    }
+    return undefined;
+  }
+
+  /**
+   * Devuelve la clave de sexo
+   * @param {*} name Neskak / Mutilak
+   * @returns nes / mut
+   */
+  function getSexoKeyByName(name) {
+    for (var s in SEXOS) {
+      if (SEXOS[s] == name)
+        return s;
+    }
+    return undefined;
+  }
+
+  /* ************************* */
+  /* Metodos publicos          */
+  /* ************************* */
+
+  /**
+   * Enseña el panel de equipos
+   */
+  this.showPanel = function () {
+    $("#right_panel").children().hide();
+    getEquiposPanel().show();
+  }
+
+  /**
+   * Devuelve un equipo por su nombre, categoría y N/M
+   * @param {*} name el nombre
+   * @param {*} cat la categoría (sen, jub, kad, inf)
+   * @param {*} nm N/M (nes, mut)
+   * @returns 
+   */
+  this.getEquipoByName = function (name, cat, nm) {
+    cat = getCategoriaKeyByName(cat);
+    nm = getSexoKeyByName(nm);
+    for (e in EQUIPOS) {
+      if (EQUIPOS[e].name == name) {
+        if (e.startsWith(cat + ":" + nm))
+          return EQUIPOS[e];
+      }
+    }
+    return undefined;
+  }
 }
+var equiposService = new EquiposService();

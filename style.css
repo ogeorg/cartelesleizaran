@@ -1,19 +1,39 @@
-
-html, body, div, h3, button {
+html,
+body,
+div,
+h3 {
     margin: 0;
     padding: 0;
 }
+h2 {
+    margin: 0;
+    padding: 2px;
+}
+
+.buttonbox {
+    display: flex;
+}
+
+.buttonbox button {
+    margin: 1px 2px;
+    padding: 1px;
+}
+
 body {
     font-family: "Open Sans", sans-serif;
     font-size: 1.05em;
     color: rgba(0, 0, 0, 0.8);
     background-color: rgb(253, 253, 253);
 }
+
+h2 {
+    background-color: #d3b276;
+}
 h3 {
     background-color: #d3b276;
 }
+
 #overlay {
-    border: solid black 1px;
     width: 100%;
     height: 20px;
 
@@ -25,8 +45,42 @@ h3 {
     background-color: #3017bd;
     color: #fff;
     font-weight: bold;
-    width:100%;
+    width: 100%;
     text-align: center;
+}
+
+#ui_main {
+    height: calc(100% - 20px);
+    display: grid;
+    grid-template-columns: 1fr 30px 1fr;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+}
+
+/* Codigo javascript, panel bottom-left */
+#bottom_left_panel {
+    grid-column-start: 1;
+    grid-row-start: 2;
+}
+
+#top_center_panel {
+    display: flex;
+    align-items: center;
+}
+
+#bottom_center_panel {
+    display: flex;
+    align-items: center;
+    grid-column-start: 2;
+    grid-row-start: 2;
+}
+
+#right_panel {
+    grid-row: span 2 / span 2;
+    grid-column-start: 3;
+    grid-row-start: 1;
+    height: 100%;
+    overflow-y: scroll;
 }
 
 .table {
@@ -56,8 +110,9 @@ h3 {
     display: block;
 }
 
-#partidos, #script {
-    width: 100%;
+#partidos,
+#script {
+    width: calc(100% - 5px);
     overflow-x: scroll;
     white-space: nowrap;
 }
@@ -65,16 +120,20 @@ h3 {
 .dataTableContainer {
     padding: 5px 15px 5px 5px;
 }
+
 table.dataTable {
     width: 100%;
     border-collapse: collapse;
 }
-table.dataTable th, table.dataTable td{
+
+table.dataTable th,
+table.dataTable td {
     padding: 2px;
     border: 1px solid black;
 }
+
 table.dataTable thead th {
-    background-color: #c28c29 ;
+    background-color: #c28c29;
 }
 
 pre {
@@ -82,7 +141,5 @@ pre {
     background-color: #f1f1f1;
     padding: 0.5em 1em;
     margin: 1em 0;
-    x-white-space: pre-wrap;
-    /*  break too long lines for small screens  */
     overflow-x: auto;
 }

@@ -17,36 +17,6 @@
 
     <title>Editor de Carteles</title>
     <style>
-        #ui_main {
-            display: grid;
-            grid-template-columns: 1fr 20px 1fr;
-            grid-template-rows: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        #javascript_code {
-            grid-column-start: 1;
-            grid-row-start: 2;
-        }
-
-        #table2script {
-            grid-column-start: 2;
-            grid-row-start: 2;
-        }
-
-        #table2script,
-        #orig2table {
-            display: flex;
-            align-items: center;
-        }
-
-        #rightPanel {
-            grid-row: span 2 / span 2;
-            grid-column-start: 3;
-            grid-row-start: 1;
-            height: 460px;
-            overflow-y: scroll;
-        }
 
         #btnShowSaveConfig {
             display: none;
@@ -59,10 +29,10 @@
         #uploadConfigs {
             display: none;
         }
+
         #uploadConfigs {
             margin-left: 30px;
         }
-        #configsList {}
 
         tr.viewedConfig .configKey {
             font-weight: bold;
@@ -76,79 +46,47 @@
         <div id="overlay">
             <div id="btnSlide">== Datos de los partidos ==</div>
             <div id="ui_main">
-                <!-- LEFT - TOP: Datos de los partidos -->
-                <div id="original_text">
+                <!--
+                +-----------------------+----+------------------+
+                | #top_left_panel       | >> | #right_panel      |
+                | Datos de los partidos |    | * tabla partidos |
+                +-----------------------+----+ * configurations |
+                | #bottom_left_panel    | << | * parametros     |
+                | Script a mandar       |    | * ...            |
+                +-----------------------+----+------------------+
+                -->
+                <div id="top_left_panel">
                     <div style='float: right' id="currentConfigKey"></div>
-
-                    <!-- load config: show table of configs, on select load config to partidos and id to config_id -->
-                    <!-- save config: save the config using its id -->
-                    <!-- save config as: save the config under a new id -->
-                    <h3>Datos de los partidos</h3>
+                    <h2>Datos de los partidos</h2>
                     <input type="hidden" name="config_id" value="" />
                     <textarea rows="12" id="partidos"></textarea>
-                    <div style='float: right'>
+                    <div class='buttonbox' style='float: right;'>
                         <button id="btnSaveSaveConfig">Guardar</button>
                         <button id="btnShowSaveConfigAs">Guardar como...</button>
                         <button id="btnShowLoadConfig">Configuraciones...</button>
-                        <button id="btnShowDataSources">Equipos...</button>
+                        <button id="btnEquiposPanel">Equipos...</button>
                         <button id="btnShowHelp">Ayuda</button>
                     </div>
-
+                    <div><input id="txtCapitalize" /></div>
                 </div>
-                <div id="orig2table">
+                <div id="top_center_panel">
                     <button id="btnTransformPartidos"> >> </button>
                 </div>
-                <!-- LEFT - BOTTOM: Script to be sent -->
-                <div id="javascript_code">
-                    <h3>Código javascript</h3>
+                <div id="bottom_left_panel">
+                    <h2>Código javascript</h2>
                     <textarea rows="12" id="script"></textarea>
-                    <div style='float: right'>
+                    <div style='float: right' class='buttonbox'>
                         <button id="btnShowScriptParams">Parametros...</button>
                         <button id="btnPostScript">Run script</button>
                     </div>
                 </div>
-                <div id="table2script">
+                <div id="bottom_center_panel">
                     <button id="btnDom2Javascript"> &lt;&lt; </button>
                 </div>
-                <!-- RIGHT: Datos de los partidos -->
-                <div id="rightPanel">
-                    <div id="loadConfigRightPanel">
-                        <h3>Configuraciones</h3>
-                        <!-- Create a list of configs -->
-                        <div>
-                            <table id="configsList">
-                                <thead>
-                                    <tr>
-                                        <th>Clave</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                        <div>
-                            <button id="btnLoadDefaultLoadConfig">Cargar ejemplo</button>
-                            <button id="btnMakeNextConfig">Crear jornada</button>
-                            <button id="btnDownloadConfigs">Descargar todo</button>
-                            <button id="btnUploadConfigs">Cargar un fichero</button>
-                            <button id="btnCancelLoadConfig">Cancel</button>
-                        </div>
-                        <div id="uploadConfigs">
-                            <div>
-                                <input type="file" id="files" name="files[]" />
-                            </div>
-                            <div>
-                                <button id="btnCancelUploadConfigs">Cancel</button>
-                            </div>
-                        </div>
-                        <pre id="configPreview">
-
-                        </pre>
-                    </div>
-
+                <div id="right_panel">
                     <!-- Panel de help -->
                     <div id="helpRightPanel">
-                        <h3>Ayuda</h3>
+                        <h2>Ayuda</h2>
                         <p>
                             Los datos se insertan por <b>secciones</b>.
                             Un sección empieza por <code>[nombre sección]</code> y se exitende
@@ -188,7 +126,7 @@ linea 3</pre>
 [SENIOR]
 Neskak ; 17 MAI 18:00 ; Egia (Donosita) ; Egia Baztarre Taberna ; Leizaran Lanbroa Taberna ; 28 ; 31
 Mutilak ; 17 MAI 18:99 ; Ispilla (Zumarraga) ; Urola E.K. Crist. Goiherro ; Leizaran Eskubalioa</pre>
-                                                <p>Los datos de goles (opcionales) servirán para la platilla de resultados.</p>
+                        <p>Los datos de goles (opcionales) servirán para la platilla de resultados.</p>
                         <div>
                             <button class="btnCerrarRightPanel">Cerrar</button>
                         </div>

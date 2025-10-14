@@ -24,9 +24,6 @@ function $makeSelectPlantillasParams() {
 function getSelectedPlantillasParamsKey() {
     return $(`#${PARAMS_SEL_PLANTILLAS_ID}`).val();
 }
-function onChangePlantillaParams() {
-    changePlantillaParams(this.value);
-}
 function changePlantillaParams(pl) {
     var paramsPlantillaTitle = pl == PLANTILLA_DFLT_KEY ? PLANTILLA_DFLT_NAME : PLANTILLAS[pl].title;
     $("#paramsPlantillaTitle").text(paramsPlantillaTitle);
@@ -36,9 +33,7 @@ function changePlantillaParams(pl) {
         $(`#${PARAMS_DIV_USE_DFLT_ID}`).show();
     initParamsPanel();
 }
-function onChangeCheckboxParamsUseDefault() {
-    whenCheckboxParamsUseDefault(this.checked);
-}
+
 function whenCheckboxParamsUseDefault(checked) {
     if (checked)
         $(`#${PARAMS_LIST_PARAMS}`).hide();
@@ -48,22 +43,22 @@ function whenCheckboxParamsUseDefault(checked) {
 function getParametersPanel() {
     var $pnl = $("#paramsRightPanel");
     if ($pnl.length == 0) {
-        var $pnl = $("<div id='paramsRightPanel'>").appendTo($('#rightPanel'));
+        var $pnl = $("<div id='paramsRightPanel'>").appendTo($('#right_panel'));
 
         // Titulo
-        $pnl.append("<h3>Parametros</h3>");
+        $pnl.append("<h2>Parametros</h2>");
 
         var $divPlant = $(`<div></div>`).appendTo($pnl);
         $divPlant.append("Plantilla: ");
         $makeSelectPlantillasParams() //
             .appendTo($divPlant) //
-            .on('change', onChangePlantillaParams);
+            .on('change', function () { changePlantillaParams(this.value); });
 
         $pnl.append("<p>Panel de parametros para <span style='font-style:italic' id='paramsPlantillaTitle'></span></p>");
 
         var $divUseDflt = $(`<div id='${PARAMS_DIV_USE_DFLT_ID}'></div>`).appendTo($pnl);
         $(`<input type='checkbox' id='${PARAMS_CHK_USE_DFLT_ID}'>`) //
-            .on('change', onChangeCheckboxParamsUseDefault) //
+            .on('change', function () { whenCheckboxParamsUseDefault(this.checked); }) //
             .appendTo($divUseDflt);
         $divUseDflt.append(" Usar los valores por defecto");
 
@@ -75,15 +70,13 @@ function getParametersPanel() {
         }
 
         // Botones
-        var $btns = $("<p></p>").appendTo($pnl);
+        var $btns = $("<div class='buttonbox'></div>").appendTo($pnl);
         $(`<button id='btnSaveParams'>Guardar</button>`) //
             .on('click', onSaveScriptParamsOnRight) //
             .appendTo($btns);
-        $("<span> </span>").appendTo($btns);
         $(`<button id='btnUndoParamsChange'>Desahcer cambios</button>`) //
             .on('click', onUndoParamChange) //
             .appendTo($btns);
-        $("<span> </span>").appendTo($btns);
         $(`<button>Cerrar</button>`) //
             .on('click', onShowPartidosOnRight) //
             .appendTo($btns);
@@ -94,50 +87,14 @@ function getParametersPanel() {
 }
 
 function onShowScriptParamsOnRight() {
-    $("#rightPanel").children().hide();
+    $("#right_panel").children().hide();
     getParametersPanel().show();
     initParamsPanel();
 }
 
-function onSaveScriptParamsOnRight() {
-    var allParams = loadParams();
-    var params = {};
-    params[PARAMS_USE_DFLT_KEY] = $(`#${PARAMS_CHK_USE_DFLT_ID}`).is(':checked');
-    $(`#${PARAMS_LIST_PARAMS}`)
-        .find('input[data-param], textarea[data-param]')
-        .each(function () {
-            var $this = $(this);
-            var param = $this.data('param');
-            var value = $this.val();
-            params[param] = value;
-        });
-    allParams[getSelectedPlantillasParamsKey()] = params;
-    saveParams(allParams);
-    initParamsPanel();
-}
-function loadParams() {
-    var params = JSON.parse(localStorage.getItem("params"));
-    if (params == null) params = {};
-    return params;
-}
-function getParamsAsStr(plantilla) {
-    var params = loadParams();
-    params = params[plantilla];
-    var res = [];
-    for(var p in params) {
-        if (PARAMS_NOT2SCRIPT.includes(p))
-            continue;
-        res.push(`${p}: ${params[p]}`);
-    }
-    return '{' + res.join(', ') + '}';
-}
-function saveParams(params) {
-    localStorage.setItem("params", JSON.stringify(params));
-}
 
 function initParamsPanel() {
-    var allParams = loadParams();
-    var params = allParams[getSelectedPlantillasParamsKey()] ?? {};
+    var params = paramsPersistor.getParams(getSelectedPlantillasParamsKey());
 
     var useDefault = params[PARAMS_USE_DFLT_KEY] ?? false;
     $(`#${PARAMS_CHK_USE_DFLT_ID}`).prop('checked', useDefault);
@@ -169,4 +126,49 @@ function onUndoParamChange() {
         var value = $this.data('value');
         $this.val(value);
     })
+}
+
+function onSaveScriptParamsOnRight() {
+    var params = {};
+    params[PARAMS_USE_DFLT_KEY] = $(`#${PARAMS_CHK_USE_DFLT_ID}`).is(':checked');
+    $(`#${PARAMS_LIST_PARAMS}`)
+        .find('input[data-param], textarea[data-param]')
+        .each(function () {
+            var $this = $(this);
+            var param = $this.data('param');
+            var value = $this.val();
+            params[param] = value;
+        });
+    paramsPersistor.saveParams(getSelectedPlantillasParamsKey(), params);
+    initParamsPanel();
+}
+function ParametersPersistor() {
+    function loadAllParams() {
+        return JSON.parse(localStorage.getItem("params")) ?? {};
+    }
+    this.getParams = function (paramsKey) {
+        var allParams = loadAllParams();
+        var params = allParams[paramsKey] ?? {};
+        return params;
+    }
+    this.saveParams = function (paramsKey, params) {
+        var allParams = loadAllParams();
+        allParams[paramsKey] = params;
+        localStorage.setItem("params", JSON.stringify(allParams));
+    }
+    this.getParamsAsStr = function (plantilla) {
+        var params = this.getParams(plantilla);
+        var res = [];
+        for (var p in params) {
+            if (PARAMS_NOT2SCRIPT.includes(p))
+                continue;
+            res.push(`${p}: ${params[p]}`);
+        }
+        return '{' + res.join(', ') + '}';
+    }
+}
+var paramsPersistor = new ParametersPersistor();
+
+function ParametersService() {
+
 }

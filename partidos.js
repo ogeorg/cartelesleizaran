@@ -11,9 +11,13 @@ function transformDom2Html(dom) {
     makeCategorias(dom.categorias);
 }
 function makeLinkedNameEquipo(teamName, cat, nm) {
-    var equipo = getEquipoByName(teamName, cat, nm);
-    equipo = equipo ? `<a href='${equipo.urls[0]}' target='_blank'>${teamName}</a>`: teamName;
-    return equipo;
+    var equipo = equiposService.getEquipoByName(teamName, cat, nm);
+    if (equipo) {
+        var urls = equipo.urls.filter((u) => u).map((u, i) => `<a href='${u}' target='_blank'>${i+1}</a>`);
+        return teamName + "<sup>" + urls.join(", ")+"</sup>";
+    } else {
+        return teamName;
+    }
 }
 function makeCategorias(categorias) {
     var $partidosTabla = $('#partidosTabla');
@@ -75,6 +79,8 @@ function getPartidosPanel() {
     var $pnl = $("#partidosRightPanel");
     if ($pnl.length == 0) {
         $pnl = $("<div id='partidosRightPanel'>");
+        $pnl.append("<h2>Partidos</h2>");
+
 
         var $plantillas = $(`<div id="plantillas"></div>`).appendTo($pnl);
         $(`<span>Plantilla: </span>`).appendTo($plantillas);
@@ -85,7 +91,7 @@ function getPartidosPanel() {
 
         $(`<div id="fechaTabla" class="dataTableContainer"></div>`).appendTo($pnl);
         $(`<div id="partidosTabla" class="dataTableContainer"></div>`).appendTo($pnl);
-        $('#rightPanel').append($pnl);
+        $('#right_panel').append($pnl);
     }
     return $pnl;
 }
@@ -93,7 +99,7 @@ function initPartidos() {
     var $partidosRightPanel = getPartidosPanel();
 }
 function onShowPartidosOnRight() {
-    $("#rightPanel").children().hide();
+    $("#right_panel").children().hide();
     getPartidosPanel().show();
 }
 /**

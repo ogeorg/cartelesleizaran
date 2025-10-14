@@ -62,9 +62,9 @@ function transformDom2Javascript(dom) {
                 dom2.categorias.push(categoria);
         }
     var json = "var data = " + JSON.stringify(dom2) + "\n\n";
-    var script = $("#basecode4Photopea").val();
     var plantilla = $("#selPlantillas").val();
-    script = script.replace("$$PARAMS$$", getParamsAsStr(plantilla));
+    script = paramsPersistor.getParams(plantilla).code ?? $("#basecode4Photopea").val();
+    script = script.replace("$$PARAMS$$", paramsPersistor.getParamsAsStr(plantilla));
     $("#script").val(json + script);
 }
 
@@ -94,7 +94,7 @@ function slideUp() {
 }
 function slideDown() {
     $("#overlay").animate({
-        height: "90%"
+        height: "100%"
     }, function (animation, jumpedToEnd) {
         $("#ui_main").show()
     });
@@ -128,6 +128,7 @@ function onTransformPartidos() {
         transformDom2Javascript(dom);
         onShowPartidosOnRight();
     });
+    onShowPartidosOnRight();
 }
 
 
@@ -136,10 +137,16 @@ function onTransformPartidos() {
 // ----------------------------------------------
 
 function onShowHelp() {
-    $("#rightPanel").children().hide();
+    $("#right_panel").children().hide();
     $("#helpRightPanel").show();
 }
 
+function onPaste2Capitalize(e) {
+    e.preventDefault();
+    var name = e.originalEvent.clipboardData.getData('text');
+    name = name.replace(/\p{L}+/ug, word => word[0].toUpperCase() + word.slice(1).toLowerCase());
+    this.value = name;
+}
 // ----------------------------------------------
 // Params panel
 // ----------------------------------------------
@@ -157,10 +164,13 @@ $(document).ready(function () {
     $("#btnPostScript").on('click', runScript);
     $("#btnShowLoadConfig").on('click', onShowConfigsOnRight);
     $("#btnShowHelp").on('click', onShowHelp);
+    $("#txtCapitalize").on('paste', onPaste2Capitalize);
 
     // Parametros
     $("#btnShowScriptParams").on('click', onShowScriptParamsOnRight);
-    $("#btnShowDataSources").on('click', onShowDataSources);
+    $("#btnEquiposPanel").on('click', function () {
+        equiposService.showPanel();
+    });
 
     $(".btnCerrarRightPanel").on('click', onShowPartidosOnRight);
 
