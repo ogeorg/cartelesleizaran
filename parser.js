@@ -23,9 +23,14 @@ function parsePartidos(txtPartidos) {
             if (!line)
                 return;
             var items = line.split("/");
+            // urtea
+            this.fecha.y = items[0].trim();
+            // hilabetea
             var mes = parseInt(items[1].trim());
+            this.fecha.m = mes;
             this.fecha.hilabetea = meses[mes][3];
             this.fecha.mes = meses[mes][1];
+            // egunak
             this.fecha.egunak = items[2].trim();
         }
     }

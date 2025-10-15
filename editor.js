@@ -119,7 +119,7 @@ function runScript(e) {
 /**
  * Coge la desripcion de partidos
  */
-function onTransformPartidos() {
+function onTransformDataToTable() {
     var partidos = $("#partidos").val();
     var dom = parsePartidos(partidos);
     transformDom2Html(dom);
@@ -131,6 +131,27 @@ function onTransformPartidos() {
     onShowPartidosOnRight();
 }
 
+function transformDom2Data(dom) {
+    var lines = [];
+    var fecha = dom.fecha;
+        lines.push("[FECHA]");
+        lines.push(`${fecha.y} ; ${fecha.m} ; ${fecha.egunak} ; `);
+    var categorias = dom.categorias;
+    for(var cat in categorias) {
+        var categoria = categorias[cat]
+        lines.push(`[${categoria.titulo}]`);
+        for(var par in categoria.partidos) {
+            var partido = categoria.partidos[par];
+            lines.push(`${partido.s} ; ${partido.t} ; ${partido.l} ; ${partido.t1} ; ${partido.t2} ; ${partido.g1 ?? ''} ; ${partido.g2 ?? ''}`);
+        }
+    }
+    return lines.join('\n');
+}
+function onTransformTableToData() {
+    var dom = parseTablaPartidos();
+    var data = transformDom2Data(dom);
+    $("#partidos").val(data);
+}
 
 // ----------------------------------------------
 // Help panel
@@ -160,7 +181,8 @@ $(document).ready(function () {
     frame = document.getElementById("pp");
     window.addEventListener("message", onMSG);
     $("#btnSlide").on("click", slide);
-    $("#btnTransformPartidos").on("click", onTransformPartidos);
+    $("#btnDataToTable").on("click", onTransformDataToTable);
+    $("#btnTableToData").on("click", onTransformTableToData);
     $("#btnPostScript").on('click', runScript);
     $("#btnShowLoadConfig").on('click', onShowConfigsOnRight);
     $("#btnShowHelp").on('click', onShowHelp);
@@ -178,7 +200,7 @@ $(document).ready(function () {
     initPartidos();
     slideDown();
 
-    onTransformPartidos();
+    onTransformDataToTable();
 
     // updatePlayground();
 });

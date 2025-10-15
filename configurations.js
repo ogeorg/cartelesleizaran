@@ -176,7 +176,7 @@ function showConfigsOnRight(selectedKey) {
 function onLoadDefaultConfig() {
     // Load config to partidos
     $("#partidos").val(configEjemplo);
-    onTransformPartidos();
+    onTransformDataToTable();
 }
 function onMakeNextConfig() {
     var partidosByCat = {};
@@ -209,7 +209,7 @@ function onMakeNextConfig() {
         }
     }
     $("#partidos").val(config);
-    onTransformPartidos();
+    onTransformDataToTable();
 }
 /** Actions on loading a config */
 function loadConfig(key, config) {
@@ -218,7 +218,7 @@ function loadConfig(key, config) {
     setCurrentKey(key);
     // Enable button "Save"
     $("#btnShowSaveConfig").show();
-    onTransformPartidos();
+    onTransformDataToTable();
 }
 function setCurrentKey(key) {
     currentConfigKey = key;

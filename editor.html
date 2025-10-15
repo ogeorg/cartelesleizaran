@@ -49,7 +49,7 @@
                 <!--
                 +-----------------------+----+------------------+
                 | #top_left_panel       | >> | #right_panel      |
-                | Datos de los partidos |    | * tabla partidos |
+                | Datos de los partidos | << | * tabla partidos |
                 +-----------------------+----+ * configurations |
                 | #bottom_left_panel    | << | * parametros     |
                 | Script a mandar       |    | * ...            |
@@ -70,7 +70,7 @@
                     <div><input id="txtCapitalize" /></div>
                 </div>
                 <div id="top_center_panel">
-                    <button id="btnTransformPartidos"> >> </button>
+                    <div><button id="btnDataToTable"> >> </button><br /><button id="btnTableToData"> &lt;&lt; </button></div>
                 </div>
                 <div id="bottom_left_panel">
                     <h2>Código javascript</h2>

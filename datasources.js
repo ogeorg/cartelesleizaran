@@ -214,7 +214,7 @@ function EquiposService() {
    * @param {*} name (SENIOR, ...)
    * @returns (sen, jub, kad, inf)
    */
-  function getCategoriaKeyByName(name) {
+  this.getCategoriaKeyByName = function(name) {
     for (var c in CATEGORIAS) {
       if (CATEGORIAS[c] == name)
         return c;
@@ -227,7 +227,7 @@ function EquiposService() {
    * @param {*} name Neskak / Mutilak
    * @returns nes / mut
    */
-  function getSexoKeyByName(name) {
+  this.getSexoKeyByName = function(name) {
     for (var s in SEXOS) {
       if (SEXOS[s] == name)
         return s;
@@ -255,8 +255,8 @@ function EquiposService() {
    * @returns 
    */
   this.getEquipoByName = function (name, cat, nm) {
-    cat = getCategoriaKeyByName(cat);
-    nm = getSexoKeyByName(nm);
+    cat = this.getCategoriaKeyByName(cat);
+    nm = this.getSexoKeyByName(nm);
     for (e in EQUIPOS) {
       if (EQUIPOS[e].name == name) {
         if (e.startsWith(cat + ":" + nm))
