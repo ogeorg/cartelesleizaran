@@ -33,7 +33,7 @@ Mutilak ; 10:00 ; Alluralde (Andoain) ; Leizaran Camacho construcción; Zaisa Bi
 Mutilak ; 10:00 ; Hernani kiroldegia (Hernani) ; Hernani ;Leizaran Javier Zeramika
 
 */
-var meses = [
+var MESES = [
     [],
     ['ene', 'enero', 'urt', 'urtarrila'],
     ['feb', 'febrero', 'ots', 'otsaila'],

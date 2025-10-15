@@ -22,14 +22,14 @@ function parsePartidos(txtPartidos) {
         this.produce = function () {
             if (!line)
                 return;
-            var items = line.split("/");
+            var items = line.split(/[;\/]/);
             // urtea
             this.fecha.y = items[0].trim();
             // hilabetea
             var mes = parseInt(items[1].trim());
             this.fecha.m = mes;
-            this.fecha.hilabetea = meses[mes][3];
-            this.fecha.mes = meses[mes][1];
+            this.fecha.hilabetea = MESES[mes][3];
+            this.fecha.mes = MESES[mes][1];
             // egunak
             this.fecha.egunak = items[2].trim();
         }

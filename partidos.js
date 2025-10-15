@@ -13,7 +13,7 @@ function transformDom2Html(dom) {
 function parseTablaPartidos() {
     var fecha = {};
     var categorias = {};
-    $('.editable-data, .fixed-data').each(function () {
+    $('.editable-data, .fixed-data').find("[data-key]").each(function () {
         var $this = $(this);
         var key = $this.data('key').split(':');
         var cat = key[0];
@@ -36,7 +36,7 @@ function parseTablaPartidos() {
 function makeLinkedNameEquipo(teamName, cat, nm) {
     var equipo = equiposService.getEquipoByName(teamName, cat, nm);
     if (equipo) {
-        var urls = equipo.urls.filter((u) => u).map((u, i) => `<a href='${u}' target='_blank'>${i + 1}</a>`);
+        var urls = equipo.urls.filter((u) => u).map((u, i) => `<a href='${u}' target='partidos_leizaran_en_federaciones'>${i + 1}</a>`);
         return "<sup>" + urls.join(", ") + "</sup>";
     } else {
         return "";
@@ -45,34 +45,25 @@ function makeLinkedNameEquipo(teamName, cat, nm) {
 function makeCategorias(categorias) {
     var $partidosTabla = $('#partidosTabla');
     function makeCategoria(categoria) {
-        var hayGoles = false;
         var categoriaKey = equiposService.getCategoriaKeyByName(categoria.titulo);
-        for (var partido of categoria.partidos) {
-            if ('g1' in partido || 'g2' in partido) {
-                hayGoles = true;
-                break;
-            }
-        }
         $partidosTabla.append(`<h3><input class='cb-category' type='checkbox' name='${categoria.titulo.toLowerCase()}' /> ${categoria.titulo}</h3>`);
-        var g = hayGoles ? '<th>G.</th>' : '';
-        var head = `<tr><th>N/M</th><th>Hora</th><th>Lugar</th><th>Equipos</th>${g}</tr>`;
+        var head = `<tr><th>N/M</th><th>Hora</th><th>Lugar</th><th>Equipos</th><th>G.</th></tr>`;
         var $tabla = $(`<table class='dataTable'><thead>${head}</thead></table>`);
         var $body = $tabla.appendTo($partidosTabla).append("<tbody></tbody>");
         var partidoPos = 0;
         for (var partido of categoria.partidos) {
             var parKey = categoriaKey + ":" + partidoPos;
-            var g1 = hayGoles ? ('g1' in partido ? `<td><span class='editable-data' data-key='${parKey}:g1'>${partido.g1}</span></td>` : '<td></td>') : "";
-            var g2 = hayGoles ? ('g2' in partido ? `<td><span class='editable-data' data-key='${parKey}:g2'>${partido.g2}</span></td>` : '<td></td>') : "";
             var links1 = makeLinkedNameEquipo(partido.t1, categoria.titulo, partido.s);
             var links2 = makeLinkedNameEquipo(partido.t2, categoria.titulo, partido.s);
-            $body.append(`<tr><td><span class='fixed-data' data-key='${parKey}:s'>${partido.s}</span></td>
-                <td><span class='editable-data' data-key='${parKey}:t'>${partido.t}</span></td>
-                <td><span class='editable-data' data-key='${parKey}:l'>${partido.l}</span></td>
-                <td><span class='editable-data' data-key='${parKey}:t1'>${partido.t1}</span>${links1}</td>
-                ${g1}</tr>`);
+            $body.append(`<tr>
+                <td class='fixed-data'><span data-key='${parKey}:s'>${partido.s}</span></td>
+                <td class='editable-data'><span data-key='${parKey}:t'>${partido.t}</span></td>
+                <td class='editable-data'><span data-key='${parKey}:l'>${partido.l}</span></td>
+                <td class='editable-data'><span data-key='${parKey}:t1'>${partido.t1}</span>${links1}</td>
+                <td class='editable-data'><span data-key='${parKey}:g1'>${partido.g1 ?? ''}</span></td></tr>`);
             $body.append(`<tr><td colspan='3' >
-                <td><span class='editable-data' data-key='${parKey}:t2'>${partido.t2}</span>${links2}</td>
-                ${g2}</tr>`);
+                <td class='editable-data'><span data-key='${parKey}:t2'>${partido.t2}</span>${links2}</td>
+                <td class='editable-data'><span data-key='${parKey}:g2'>${partido.g2 ?? ''}</span></td></tr>`);
             partidoPos += 1;
         }
     }
@@ -100,19 +91,8 @@ function cancelCurrentEdit() {
     $currentEdit.text($currentEdit.data('origvalue'));
     $currentEdit = null;
 }
-function onEditDato() {
-    var $this = $(this);
-    if ($currentEdit) {
-        if ($this == $currentEdit)
-            return;
-        else
-            cancelCurrentEdit();
-    }
-    var value = $this.text();
-    $this.data('origvalue', value);
-    $this.empty();
-    $(`<input type='text' value='${value}' />`) //
-        .appendTo($this) //
+function makeEditDatoInputText(origvalue) {
+    var $input = $(`<input type='text' value='${origvalue}' />`) //
         .on('change', function () {
             acceptCurrentEdit(this.value);
         }) //
@@ -123,7 +103,39 @@ function onEditDato() {
                 default: break;
             }
         });
-    $currentEdit = $this;
+    return $input;
+}
+function makeEditDatoSelectMes(values, origvalue) {
+    var options = "1,2,3,4,5,6,7,8,9,10,11,12".split(",").map(v => `<option>${v}</option>`).join("");
+    var $sel = $(`<select>${options}</select>`) //
+        .val(origvalue) //
+        .on('blur', function() {
+            acceptCurrentEdit(this.value);
+            $('#partidosHilabetea').text(MESES[this.value][3]);
+            $('#partidosMes').text(MESES[this.value][1]);
+        });
+    return $sel;
+}
+function onEditDato() {
+    var $this = $(this);
+    var $edit = $this.find("[data-key]");
+    if ($currentEdit) {
+        if ($edit == $currentEdit)
+            return;
+        else
+            cancelCurrentEdit();
+    }
+    var value = $edit.text();
+    $edit.data('origvalue', value);
+    $edit.empty();
+    var valuetype = $edit.data('valuetype')
+    if (valuetype == 'month') {
+        var $editwidget = makeEditDatoSelectMes(value);
+    } else {
+        var $editwidget = makeEditDatoInputText(value);
+    }
+    $editwidget.appendTo($edit);
+    $currentEdit = $edit;
 }
 function getCategoriesChecks() {
     var checks = {};
@@ -144,11 +156,11 @@ function makeFecha(fecha) {
         $fechaTabla.append(`<h3>FECHAS</h3>`);
         var head = `<tr><th>Urtea</th><th colspan='3'>Hilabetea</th><th>Egunak</th></tr>`;
         var body = `<tr>
-            <td><span class='editable-data' data-key='fecha:y'>${fecha.y}</span></td>
-            <td><span class='editable-data' data-key='fecha:m'>${fecha.m}</span></td>
+            <td class='editable-data'><span data-key='fecha:y'>${fecha.y}</span></td>
+            <td class='editable-data'><span data-key='fecha:m' data-valuetype='month'>${fecha.m}</span></td>
             <td id='partidosHilabetea'>${fecha.hilabetea}</td>
             <td id='partidosMes'>${fecha.mes}</td>
-            <td><span class='editable-data' data-key='fecha:egunak'>${fecha.egunak}</span></td>`;
+            <td class='editable-data'><span data-key='fecha:egunak'>${fecha.egunak}</span></td>`;
         var $tabla = $(`<table class='dataTable'><thead>${head}</thead><tbody>${body}</tbody></table>`);
         $fechaTabla.append($tabla);
     }

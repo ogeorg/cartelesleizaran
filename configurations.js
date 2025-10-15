@@ -191,7 +191,7 @@ function onMakeNextConfig() {
     var m = date.getMonth() + 1;
     var d = date.getDate();
     var fechaJornada = `${y} / ${m} / ${d}`;
-    var fechaPartido = `${meses[m][2].toUpperCase()} ${d}, hh:mm`;
+    var fechaPartido = `${MESES[m][2].toUpperCase()} ${d}, hh:mm`;
 
     for(var e in EQUIPOS) {
         var cat = e.substring(0, 3);
