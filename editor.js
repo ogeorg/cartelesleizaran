@@ -106,6 +106,14 @@ function EditorService() {
     this.resetContent = function () {
 
     }
+
+    function onPaste2Capitalize(e) {
+        e.preventDefault();
+        var name = e.originalEvent.clipboardData.getData('text');
+        name = name.replace(/\p{L}+/ug, word => word[0].toUpperCase() + word.slice(1).toLowerCase());
+        this.value = name;
+    }
+
     /**
      * Coge la desripcion de partidos
      */
@@ -147,11 +155,17 @@ function EditorService() {
     }
     this.init = function () {
         $data = $("#partidos");
+        $("#btnSaveSaveConfig").on('click', () => configurationsService.saveCurrentConfig($("#partidos").val()));
+        $("#btnShowSaveConfigAs").on('click', () => saveConfigAsService.showPanel());
+        $("#btnShowLoadConfig").on('click', () => configurationsService.showConfigsOnRight(currentConfigKey));
+        $("#btnEquiposPanel").on('click', () => equiposService.showPanel());
+        $("#btnShowHelp").on('click', onShowHelp);
+
+        $("#txtCapitalize").on('paste', onPaste2Capitalize);
     }
     var $data;
 }
 const editorService = new EditorService();
-
 
 function PhotopeaCodeService() {
     this.fillCodeWithDom = function (dom) {
@@ -188,16 +202,9 @@ function onShowHelp() {
     $("#helpRightPanel").show();
 }
 
-function onPaste2Capitalize(e) {
-    e.preventDefault();
-    var name = e.originalEvent.clipboardData.getData('text');
-    name = name.replace(/\p{L}+/ug, word => word[0].toUpperCase() + word.slice(1).toLowerCase());
-    this.value = name;
-}
 // ----------------------------------------------
 // Params panel
 // ----------------------------------------------
-
 
 // ----------------------------------------------
 // Linking
@@ -206,40 +213,31 @@ function onPaste2Capitalize(e) {
 $(document).ready(function () {
     frame = document.getElementById("pp");
     window.addEventListener("message", onMSG);
+
+    // Sliding
     $("#btnSlide").on("click", slide);
+
+    // data <-> tabla
     $("#btnDataToTable").on("click", () => editorService.fillTableWithData());
     $("#btnTableToData").on("click", () => editorService.fillDataWithTable());
+
+    // tabla <-> javascript
     $("#btnDom2Javascript").on("click", () => photopeaCodeService.fillCodeWithTable());
 
+    // Botones de abajo
+    $("#btnShowScriptParams").on('click', () => parametersService.showScriptParamsOnRight());
     $("#btnPostScript").on('click', runScript);
-    $("#btnShowLoadConfig").on('click', () => configurationsService.showConfigsOnRight(currentConfigKey));
-    $("#btnShowHelp").on('click', onShowHelp);
-    $("#txtCapitalize").on('paste', onPaste2Capitalize);
 
-    // Parametros
-    $("#btnShowScriptParams")./* The `on` function in the provided JavaScript code is used to attach
-    event handlers to elements in the document. It is commonly used with
-    jQuery to bind event handlers to specific events like click, change,
-    keyup, etc. */
-        on('click', () => parametersService.showScriptParamsOnRight());
-    $("#btnEquiposPanel").on('click', () => equiposService.showPanel());
-
+    // Boton general
     $(".btnCerrarRightPanel").on('click', () => tableView.showPartidosOnRight());
 
     saveConfigAsService.init();
-    $("#btnShowSaveConfigAs").on('click', () => saveConfigAsService.showPanel());
-
     configurationsService.init();
-    $("#btnSaveSaveConfig").on('click', () => configurationsService.saveCurrentConfig($("#partidos").val()));
-
     tableView.init();
-
     editorService.init();
-    slideDown();
 
-    // onTransformDataToTable();
     editorService.fillTableWithData();
-
-    // updatePlayground();
+    
+    slideDown();
 });
 
