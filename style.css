@@ -1,14 +1,39 @@
 html,
 body,
-div,
-h3 {
+div {
     margin: 0;
     padding: 0;
 }
+
 h2 {
     margin: 0;
     padding: 2px;
+    background-color: #d3b276;
 }
+
+h3 {
+    margin: 0;
+    padding: 0;
+    background-color: #d3b276;
+}
+
+.titulo-2 {
+    margin: 8px 0 0 0;
+    padding: 0;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: #d3b276;
+}
+
+.titulo-3 {
+    margin: 5px 0 0 0;
+    padding: 0;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: #d3b276;
+}
+
+
 
 .buttonbox {
     display: flex;
@@ -26,12 +51,6 @@ body {
     background-color: rgb(253, 253, 253);
 }
 
-h2 {
-    background-color: #d3b276;
-}
-h3 {
-    background-color: #d3b276;
-}
 
 #overlay {
     width: 100%;
@@ -142,4 +161,41 @@ pre {
     padding: 0.5em 1em;
     margin: 1em 0;
     overflow-x: auto;
+}
+
+.fecha-hasta-superada {
+    background-color: #ff8888;
+}
+
+div.formEl {
+    display: inline-block;
+    padding-right: 2px;
+}
+.formEl {
+    font-size: 13px;
+    -border: 1px black dotted;
+}
+.formEl.wm {
+    width: 4%;
+}
+.formEl.w1 {
+    width: 8%;
+}
+.formEl.w2 {
+    width: 16%;
+}
+.formEl.w3 {
+    width: 24%;
+}
+.formEl.w4 {
+    width: 32%;
+}
+.formEl.w5 {
+    width: 40%;
+}
+.formEl.w6 {
+    width: 48%;
+}
+.formEl.w8m {
+    width: 68%;
 }

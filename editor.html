@@ -4,9 +4,12 @@
 
 <head>
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/smoothness/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
 
     <script src="plantillas.js"></script>
+    <script src="persistor.js"></script>
     <script src="datasources.js"></script>
     <script src="parser.js"></script>
     <script src="partidos.js"></script>
@@ -17,7 +20,6 @@
 
     <title>Editor de Carteles</title>
     <style>
-
         #btnShowSaveConfig {
             display: none;
         }
@@ -25,13 +27,8 @@
         #saveConfigAsRightPanel,
         #loadConfigRightPanel,
         #helpRightPanel,
-        #paramsRightPanel,
-        #uploadConfigs {
+        #paramsRightPanel {
             display: none;
-        }
-
-        #uploadConfigs {
-            margin-left: 30px;
         }
 
         tr.viewedConfig .configKey {
@@ -70,7 +67,8 @@
                     <div><input id="txtCapitalize" /></div>
                 </div>
                 <div id="top_center_panel">
-                    <div><button id="btnDataToTable"> >> </button><br /><button id="btnTableToData"> &lt;&lt; </button></div>
+                    <div><button id="btnDataToTable"> >> </button><br /><button id="btnTableToData"> &lt;&lt; </button>
+                    </div>
                 </div>
                 <div id="bottom_left_panel">
                     <h2>Código javascript</h2>

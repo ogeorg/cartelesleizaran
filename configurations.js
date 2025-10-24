@@ -1,5 +1,4 @@
 
-var currentConfigKey = null;
 var configEjemplo = `[Fecha]
 2025 / 5 / 15-18
 [SENIOR]
@@ -17,59 +16,67 @@ Mutilak ; 17 MAI 11:00 ; Alluralde kiroldegia ; Leizaran Txuria ; Txindoki Done 
 
 
 
-function getConfigs() {
-    var configs = JSON.parse(localStorage.getItem("configs"));
-    if (configs == null) configs = {};
-    return configs;
-}
-function setConfigs(configs) {
-    localStorage.setItem("configs", JSON.stringify(configs));
-}
+//////////////////////////////////////////////////
+// UPLOAD / DOWNLOAD
+//////////////////////////////////////////////////
 
-
-
-/** Mostra el panel de configuraciones con la configuracion actual */
-function onShowConfigsOnRight() {
-    showConfigsOnRight(currentConfigKey);
+function ConfigPersistor() {
+    var persistor = new Persistor();
+    this.storeConfigs = function (configs) {
+        localStorage.setItem("configs", JSON.stringify(configs));
+    }
+    this.loadConfigs = function () {
+        var configs = JSON.parse(localStorage.getItem("configs"));
+        if (configs == null) configs = {};
+        return configs;
+    }
+    this.download = function () {
+        persistor.download("configs", "configuraciones_partidos_leizaran.json");
+    }
+    this.upload = function (parseFile) {
+        $dlg = persistor.getUploadDialog(parseFile);
+        $dlg.dialog("open");
+    }
 }
+var configsPersistor = new ConfigPersistor();
 
-/** Devuelve el TR que contiene el boton */
-function get$tr(btn) {
-    var $btn = $(btn);
-    return $btn.closest("tr")
-}
 
 
 //////////////////////////////////////////////////
 // PANEL CONFIG
 //////////////////////////////////////////////////
-const CLASS_BTN_SEE_CONFIG = 'btnSeeConfig';
 
-function get$UploadConfigPanel() {
-    var $pnl = $("#uploadConfigs");
-    if ($pnl.length == 0) {
-        $pnl = $("<div id='uploadConfigs' />");
 
-        var $inputs = $("<div></div>").appendTo($pnl);
-        $(`<input type="file" id="files" name="files[]" />`) //
-            .appendTo($inputs);
 
-        var $btns = $("<div class='buttonbox'></div>").appendTo($pnl);
-        $(`<button id="btnCancelUploadConfigs">Cancel</button>`) //
-            .on('click', onCancelUploadConfigs) //
-            .appendTo($btns);
+
+function ConfigurationsService() {
+    const CLASS_BTN_SEE_CONFIG = 'btnSeeConfig';
+
+    function parseFile(content) {
+        const data = JSON.parse(content);
+        for (key in data) {
+            configs[key] = data[key];
+        }
+        configsPersistor.storeConfigs(configs);
+        updateTable()
     }
-    return $pnl;
-}
 
-function get$ConfigurationPanel() {
-    var $pnl = $("#loadConfigRightPanel");
-    if ($pnl.length == 0) {
-        $pnl = $("<div id='dataSourcesPanel'>");
-        $pnl.append("<h2>Configuraciones</h2>");
-        $pnl.append(`<table id="configsList"><thead><tr><th>Clave</th><th>Acciones</th></tr></thead><tbody></tbody></table>`);
+    function get$ConfigurationPanel() {
+        if (!$pnl) {
+            $pnl = $("<div id='dataSourcesPanel'>");
+            $pnl.append("<h2>Configuraciones</h2>");
+            make$Botonera().appendTo($pnl);
 
-        var $btns = $("<div class='buttonbox'></div>").appendTo($pnl);
+            $pnl.append(`<table id="configsList"><thead><tr><th>Clave</th><th>Acciones</th></tr></thead><tbody></tbody></table>`);
+
+            $(`<pre id="configPreview"></pre>`).appendTo($pnl);
+            $('#right_panel').append($pnl);
+        }
+        return $pnl;
+    }
+
+    function make$Botonera() {
+        var $btns = $("<div class='buttonbox'></div>")
         $(`<button id="btnLoadDefaultLoadConfig">Cargar ejemplo</button>`) //
             .on('click', onLoadDefaultConfig) //
             .appendTo($btns);
@@ -77,54 +84,85 @@ function get$ConfigurationPanel() {
             .on('click', onMakeNextConfig) //
             .appendTo($btns);
         $(`<button id="btnDownloadConfigs">Descargar todo</button>`) //
-            .on('click', onDownloadConfigs) //
+            .on('click', function () { configsPersistor.download(); }) //
             .appendTo($btns);
         $(`<button id="btnUploadConfigs">Cargar un fichero</button>`) //
-            .on('click', onUploadConfigs) //
+            .on('click', function () { configsPersistor.upload(parseFile); }) //
             .appendTo($btns);
         $(`<button id="btnCancelLoadConfig">Cancel</button>`) //
-            .on('click', onShowPartidosOnRight) //
+            .on('click', () => tableView.showPartidosOnRight()) //
             .appendTo($btns);
-
-        get$UploadConfigPanel().appendTo($pnl);
-        $(`<pre id="configPreview"></pre>`).appendTo($pnl);
-        $('#right_panel').append($pnl);
+        return $btns;
     }
-    return $pnl;
-}
+    function updateTable(selectedKey) {
+        // First we create the table
+        var $body = $("#configsList tbody");
+        $body.empty();
+        $("#configPreview").empty();
 
-function initConfigurations() {
-    $("#btnShowSaveConfigAs").on('click', onShowSaveConfigAsOnRight);
-    $("#btnSaveSaveConfig").on('click', onSaveSaveConfig);
-}
-
-/** Mostra una configuracion concreta.  Tambien se llama para refrescar el panel */
-function showConfigsOnRight(selectedKey) {
-    $("#right_panel").children().hide();
-    var $pnl = get$ConfigurationPanel();
-    var configs = getConfigs();
-
-    // First we create the table
-    var $body = $("#configsList tbody");
-    $body.empty();
-    $("#configPreview").empty();
-
-    var $currTr = null;
-    for (var c of Object.keys(configs).sort()) {
-        var b1 = `<button class='${CLASS_BTN_SEE_CONFIG}'>Ver</button>`;
-        var b2 = `<button class='btnLoadConfig'>Cargar</button>`;
-        var b3 = `<button class='btnRemoveConfig'>Eliminar</button>`;
-        var b4 = `<button class='btnRenameConfig'>Renombrar</button>`;
-        var $tr = $(`<tr data-key='${c}'><td class='configKey'>${c}</td><td class='buttonbox'>${b1}${b2}${b3}${b4}</td></tr>`).appendTo($body);
-        if (c == selectedKey) {
-            $currTr = $tr;
-            $currTr.addClass('viewedConfig');
-            $("#configPreview").text(configs[c]);
+        for (var c of Object.keys(configs).sort()) {
+            var b1 = `<button class='btnSeeConfig'>Ver</button>`;
+            var b2 = `<button class='btnLoadConfig'>Cargar</button>`;
+            var b3 = `<button class='btnRemoveConfig'>Eliminar</button>`;
+            var b4 = `<button class='btnRenameConfig'>Renombrar</button>`;
+            var $tr = $(`<tr data-key='${c}'><td class='configKey'>${c}</td><td class='buttonbox'>${b1}${b2}${b3}${b4}</td></tr>`).appendTo($body);
+            if (c == selectedKey) {
+                $currTr = $tr;
+                $currTr.addClass('viewedConfig');
+                $("#configPreview").text(configs[c]);
+            }
         }
+
+        // Then we create event handlers
+        $(`.btnSeeConfig`).on('click', onSeeConfig);
+        $('.btnLoadConfig').on('click', onLoadConfig);
+        $('.btnRemoveConfig').on('click', onRemoveConfig);
+        $('.btnRenameConfig').on('click', onRenameConfig);
     }
 
-    // Then we create event handlers
-    $(`.${CLASS_BTN_SEE_CONFIG}`).on('click', function () {
+    function onMakeNextConfig() {
+        var partidosByCat = {};
+        for (var c in CATEGORIAS) {
+            partidosByCat[c] = [];
+        }
+
+        var date = new Date();
+        // proximo sabado
+        date.setDate(date.getDate() + 6 - date.getDay());
+        var y = date.getFullYear();
+        var m = date.getMonth() + 1;
+        var d = date.getDate();
+        var fechaJornada = `${y} / ${m} / ${d}`;
+        var fechaPartido = `${MESES[m][2].toUpperCase()} ${d}, hh:mm`;
+
+        for (var e in EQUIPOS) {
+            var cat = e.substring(0, 3);
+            var sex = e.substring(4, 7);
+            var partido = `${SEXOS[sex]} ; ${fechaPartido} ; $$LUGAR$$ ; ${EQUIPOS[e].name}; $$ADVERSARIO$$ ;`;
+            partidosByCat[cat].push(partido);
+        }
+
+        var config = `[Fecha]\n${fechaJornada}`;
+        for (var c in partidosByCat) {
+            config += `\n[${CATEGORIAS[c]}]\n`;
+            var partidos = partidosByCat[c];
+            for (var partido of partidos) {
+                config += partido + '\n';
+            }
+        }
+        editorService.setContent(undefined, config);
+    }
+
+    function onLoadDefaultConfig() {
+        editorService.setContent(undefined, configEjemplo);
+    }
+
+    /** Devuelve el TR que contiene el boton */
+    function get$tr(btn) {
+        var $btn = $(btn);
+        return $btn.closest("tr")
+    }
+    function onSeeConfig() {
         if ($currTr)
             $currTr.removeClass('viewedConfig');
         $currTr = get$tr(this);
@@ -132,12 +170,21 @@ function showConfigsOnRight(selectedKey) {
         var key = $currTr.data('key');
         var config = configs[key];
         $("#configPreview").text(config);
-    });
-    $('.btnLoadConfig').on('click', function () {
+    }
+    function onLoadConfig() {
         var key = get$tr(this).data('key');
-        loadConfig(key, configs[key]);
-    })
-    $('.btnRemoveConfig').on('click', function () {
+        editorService.setContent(key, configs[key]);
+        _setCurrentKey(key);
+    }
+    function _setCurrentKey(key) {
+        currentConfigKey = key;
+        // Show current key
+    }
+    this.setCurrentKey = function (key) {
+        _setCurrentKey(key);
+    }
+
+    function onRemoveConfig() {
         var key = get$tr(this).data('key');
         if (confirm(`Quiere eliminar la entrada ${key}?`)) {
             if (key == currentConfigKey) {
@@ -145,11 +192,11 @@ function showConfigsOnRight(selectedKey) {
                 currentConfigKey = null;
             }
             delete configs[key];
-            setConfigs(configs);
-            showConfigsOnRight(currentConfigKey);
+            configsPersistor.storeConfigs(configs);
+            self.showConfigsOnRight(currentConfigKey);
         }
-    })
-    $('.btnRenameConfig').on('click', function () {
+    }
+    function onRenameConfig() {
         var $btn = $(this);
         var $td = $btn.parent();
         var $tr = get$tr(this);
@@ -166,169 +213,85 @@ function showConfigsOnRight(selectedKey) {
                 var config = configs[key];
                 configs[newKey] = config;
                 delete configs[key];
-                setConfigs(configs);
-                showConfigsOnRight(newKey);
+                configsPersistor.storeConfigs(configs);
+                self.showConfigsOnRight(newKey);
             }
         });
-    })
-    $pnl.show();
-}
-function onLoadDefaultConfig() {
-    // Load config to partidos
-    $("#partidos").val(configEjemplo);
-    onTransformDataToTable();
-}
-function onMakeNextConfig() {
-    var partidosByCat = {};
-    for(var c in CATEGORIAS) {
-        partidosByCat[c] = [];
+
     }
-
-    var date = new Date();
-    // proximo sabado
-    date.setDate(date.getDate() + 6 - date.getDay());
-    var y = date.getFullYear();
-    var m = date.getMonth() + 1;
-    var d = date.getDate();
-    var fechaJornada = `${y} / ${m} / ${d}`;
-    var fechaPartido = `${MESES[m][2].toUpperCase()} ${d}, hh:mm`;
-
-    for(var e in EQUIPOS) {
-        var cat = e.substring(0, 3);
-        var sex = e.substring(4, 7);
-        var partido = `${SEXOS[sex]} ; ${fechaPartido} ; $$LUGAR$$ ; ${EQUIPOS[e].name}; $$ADVERSARIO$$ ;`;
-        partidosByCat[cat].push(partido);
+    /** Mostra una configuracion concreta.  Tambien se llama para refrescar el panel */
+    this.showConfigsOnRight = function (selectedKey) {
+        $("#right_panel").children().hide();
+        updateTable(configs, selectedKey);
+        $pnl.show();
     }
-    
-    var config = `[Fecha]\n${fechaJornada}`;
-    for(var c in partidosByCat) {
-        config += `\n[${CATEGORIAS[c]}]\n`;
-        var partidos = partidosByCat[c];
-        for(var partido of partidos) {
-            config += partido + '\n';
-        }
+    this.saveCurrentConfig = function (config) {
+        // configs = configsPersistor.loadConfigs();
+        configs[currentConfigKey] = config;
+        configsPersistor.storeConfigs(configs);
     }
-    $("#partidos").val(config);
-    onTransformDataToTable();
-}
-/** Actions on loading a config */
-function loadConfig(key, config) {
-    // Load config to partidos
-    $("#partidos").val(config);
-    setCurrentKey(key);
-    // Enable button "Save"
-    $("#btnShowSaveConfig").show();
-    onTransformDataToTable();
-}
-function setCurrentKey(key) {
-    currentConfigKey = key;
-    // Show current key
-    $("#currentConfigKey").text(`Configuración: ${key}`);
-}
-
-//////////////////////////////////////////////////
-// UPLOAD / DOWNLOAD
-//////////////////////////////////////////////////
-
-function onDownloadConfigs() {
-    // const json = { numberProp: 1, stringProp: "hello world" };
-    // const data = JSON.stringify(json);
-    const data = localStorage.getItem("configs");
-    // Pass the string to a Blob and turn it
-    // into an ObjectURL
-    const blob = new Blob([data], { type: "application/json" });
-    const jsonObjectUrl = URL.createObjectURL(blob);
-
-    // Create an anchor element, set it's
-    // href to be the Object URL we have created
-    // and set the download property to be the file name
-    // we want to set
-    const filename = "configuraciones_partidos_leizaran.json";
-    const anchorEl = document.createElement("a");
-    anchorEl.href = jsonObjectUrl;
-    anchorEl.download = filename;
-
-    // There is no need to actually attach the DOM
-    // element but we do need to click on it
-    anchorEl.click();
-
-    // We don't want to keep a reference to the file
-    // any longer so we release it manually
-    URL.revokeObjectURL(jsonObjectUrl);
-}
-function onUploadConfigs() {
-    $("#uploadConfigs").show();
-    var filesElem = document.getElementById('files');
-    filesElem.addEventListener('change', handleFileSelecting, false);
-}
-function onCancelUploadConfigs() {
-    $("#uploadConfigs").hide()
-}
-
-function handleFileSelecting(evt) {
-    var files = evt.target.files; // FileList object
-    for (var i = 0, f; f = files[i]; i++) {
-        var reader = new FileReader();
-        reader.onload = (function (theFile) {
-            return function (e) {
-                var content = e.target.result;
-                if (content) {
-                    readConfigs(content);
-                }
-            };
-        })(f);
-        reader.readAsText(f);
+    this.init = function () {
+        $pnl = get$ConfigurationPanel();
+        configs = configsPersistor.loadConfigs();
     }
+    var self = this;
+    var currentConfigKey = null;
+    var $currTr = null;
+    var $pnl;
+    var configs;
 }
-function readConfigs(content) {
-    const data = JSON.parse(content);
-    const keys = Object.keys(data);
-    alert("Las claves son\n- " + keys.join("\n- "));
-}
+const configurationsService = new ConfigurationsService();
 
 //////////////////////////////////////////////////
 // PANEL SAVE AS
 //////////////////////////////////////////////////
 
-function getSaveConfigAsRightPanel() {
-    var $pnl = $("#saveConfigAsRightPanel");
-    if ($pnl.length == 0) {
-        $pnl = $("<div id='saveConfigAsRightPanel'>");
-        $pnl.append("<h2>Guardar como...</h2>");
-        // Show one input[text], and on save, checks whether
-        // the name exists.  If it does not exist, saves.  If it
-        // exists, put a message and if confirmed, saves 
-        $pnl.append("<div><input id='txtConfigNameSaveConfigAs' type='text' name='configName' /></div>");
+function SaveConfigAsService() {
+    function get$Panel() {
+        var $pnl = $("#saveConfigAsRightPanel");
+        if ($pnl.length == 0) {
+            $pnl = $("<div id='saveConfigAsRightPanel'>");
+            $pnl.append("<h2>Guardar como...</h2>");
+            // Show one input[text], and on save, checks whether
+            // the name exists.  If it does not exist, saves.  If it
+            // exists, put a message and if confirmed, saves 
+            $pnl.append("<div><input id='txtConfigNameSaveConfigAs' type='text' name='configName' /></div>");
+            $pnl.append(make$Botonera());
+            $('#right_panel').append($pnl);
+        }
+        return $pnl;
+    }
+
+    function make$Botonera() {
         var $btns = $("<div class='buttonbox'></div>");
         $(`<button id='btnSaveSaveConfigAs'>Guardar</button>`) //
             .on('click', onSaveSaveConfigAs) //
             .appendTo($btns);
         $(`<button id='btnCancelSaveConfigAs'>Cancel</button>`) //
-            .on('click', onShowPartidosOnRight) //
+            .on('click', () => tableView.showPartidosOnRight()) //
             .appendTo($btns);
-        $pnl.append($btns);
-        $('#right_panel').append($pnl);
+        return $btns;
     }
-    return $pnl;
-}
-function onShowSaveConfigAsOnRight() {
-    $("#right_panel").children().hide();
-    getSaveConfigAsRightPanel().show();
-}
-function onSaveSaveConfigAs() {
-    var key = $("#txtConfigNameSaveConfigAs").val();
-    var configs = getConfigs();
-    if (key in configs) {
-        if (!confirm(`La clave ${key} ya existe.  Quiere utilizarla?`)) {
-            return;
+    function onSaveSaveConfigAs() {
+        var key = $("#txtConfigNameSaveConfigAs").val();
+        var configs = configsPersistor.loadConfigs();
+        if (key in configs) {
+            if (!confirm(`La clave ${key} ya existe.  Quiere utilizarla?`)) {
+                return;
+            }
         }
+        configs[key] = $("#partidos").val();
+        configsPersistor.storeConfigs(configs);
+        configurationsService.setCurrentKey(key);
     }
-    configs[key] = $("#partidos").val();
-    setConfigs(configs);
-    setCurrentKey(key);
+
+    this.showPanel = function () {
+        $("#right_panel").children().hide();
+        $pnl.show();
+    }
+    this.init = function () {
+        $pnl = get$Panel();
+    }
+    var $pnl;
 }
-function onSaveSaveConfig() {
-    var configs = getConfigs();
-    configs[currentConfigKey] = $("#partidos").val();
-    setConfigs(configs);
-}
+saveConfigAsService = new SaveConfigAsService();

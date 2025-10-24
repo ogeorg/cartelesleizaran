@@ -1,10 +1,16 @@
 const EQUIPOS = {
   "sen:nes:1": {
-    "equipo": "Senior neska",
-    "name": "Leizaran Lanbroa Taberna",
-    "urls": [
-      "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=220&cat=18&gr=1&clas=0",
-      "https://intranet.fvascabm.com/competiciones.asp?torneo=3312"
+    equipo: "Senior neska",
+    name: "Leizaran Lanbroa Taberna",
+    urls: [
+      {
+        desc: 'Kirolak',
+        url: "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=220&cat=18&gr=1&clas=0"
+      },
+      {
+        desc: 'Vasca',
+        url: "https://intranet.fvascabm.com/competiciones.asp?torneo=3312"
+      }
     ]
   },
   "sen:mut:1": {
@@ -112,6 +118,20 @@ const EQUIPOS = {
     ]
   }
 }
+
+function dateYYYYMMDD(date) {
+  var month = '' + (date.getMonth() + 1),
+    day = '' + date.getDate(),
+    year = date.getFullYear();
+
+  if (month.length < 2)
+    month = '0' + month;
+  if (day.length < 2)
+    day = '0' + day;
+
+  return [year, month, day].join('-');
+}
+
 const CATEGORIAS = {
   'sen': 'SENIOR',
   'jub': 'JUBENIL',
@@ -122,21 +142,161 @@ const SEXOS = {
   'nes': 'Neskak',
   'mut': 'Mutilak',
 }
-
 function EquiposPersistor() {
-  this.saveEquipos = function(equipos) {
+  var persistor = new Persistor();
+  this.storeEquipos = function (equipos) {
     localStorage.setItem("equipos", JSON.stringify(equipos));
   }
-  this.loadEquipos = function() {
+  this.loadEquipos = function () {
     var equipos = JSON.parse(localStorage.getItem("equipos"));
     if (equipos == null) params = EQUIPOS;
     return equipos;
   }
+  this.download = function () {
+    persistor.download("equipos", "equipos_leizaran.json");
+  }
+  this.upload = function (parseFile) {
+    $dlg = persistor.getUploadDialog(parseFile);
+    $dlg.dialog("open");
+  }
 }
+
 function EquiposService() {
   const persistor = new EquiposPersistor();
   const EQUIPOS_LIST_ID = 'equipos-list';
-  function updateDataSourceLink($link, url) {
+  function getEquiposFromUI() {
+    var equipos = {};
+    $(`div[data-equipo]`).each(function () {
+      var $this = $(this);
+      var e = $this.data('equipo');
+      var competicion = $this.find('input.equipo-competicion').val();
+      var hasta = $this.find('input.equipo-hasta').val();
+      var urls = [];
+      $this.find('input.equipo-url').each(function () {
+        var $input = $(this);
+        var pos = $input.parents('.urlLine').index();
+        var url = urls[pos] ?? {};
+        urls[pos] = url;
+        url[$input.data('field')] = $input.val();
+      });
+
+      var equipo = {
+        equipo: EQUIPOS[e].equipo,
+        name: EQUIPOS[e].name,
+        competicion: competicion,
+        hasta: hasta,
+        urls: urls
+      };
+      equipos[e] = equipo;
+    });
+    return equipos;
+  }
+  /** Guarda los datos de los equipos
+   */
+  function onEquiposSave() {
+    equipos = getEquiposFromUI();
+    persistor.storeEquipos(equipos);
+  }
+
+  /** Devuelve el panel jquery, lo crea si necesario
+   * @returns 
+   */
+  function getEquiposPanel() {
+    /* The line `var  = $("#equiposPanel");` is selecting the HTML element with the id "equiposPanel"
+    and storing it in the jQuery object ``. This allows the code to reference and manipulate the
+    selected element using jQuery methods and properties. */
+    var $pnl = $("#equiposPanel");
+    if ($pnl.length == 0) {
+      $pnl = $("<div id='equiposPanel'>");
+      $pnl.append("<h2>Equipos...</h2>");
+      $pnl.append(make$Botonera());
+
+      // Lista de equipos
+      var $list = $(`<p id='${EQUIPOS_LIST_ID}'></p>`).appendTo($pnl);
+
+      $('#right_panel').append($pnl);
+    }
+    return $pnl;
+  }
+
+  function make$Botonera() {
+    var $btns = $("<div class='buttonbox'></div>");
+    $(`<button>Guardar</button>`) //
+      .on('click', onEquiposSave) //
+      .appendTo($btns);
+    $(`<button>Descargar</button>`) //
+      .on('click', function () { persistor.download(); }) //
+      .appendTo($btns);
+    $(`<button>Cargar un fichero</button>`) //
+      .on('click', function () { persistor.upload(parseFile); }) //
+      .appendTo($btns);
+    $(`<button>Cerrar</button>`) //
+      .on('click', () => tableView.showPartidosOnRight()) //
+      .appendTo($btns);
+    return $btns;
+  }
+  function parseFile(content) {
+    equipos = JSON.parse(content);
+    persistor.storeEquipos(equipos);
+    updateEquiposList()
+  }
+
+  /** Crea una fila de descripcion/url
+   * @param {*} u posicion del url
+   * @param {*} url url
+   * @returns la fila
+   */
+  function make$DivUrl(url) {
+    var $urlline = $("<div class='urlLine'></div>");
+    var desc;
+    if (typeof url === "string") {
+      desc = '';
+      // url tal cual
+    } else {
+      desc = url.desc ?? '';
+      url = url.url ?? ''
+    }
+    // Descripcion
+    $urlline //
+      .append(`<div class='formEl w1' style='text-align: right'>Clave: </div>`) //
+      .append( //
+        $(`<input class='equipo-url formEl w2' data-field='desc'></div>`) //
+          .val(desc)) //
+      .append(`<div class='formEl w1' style='text-align: right'>Url: </div>`) //
+      .append( //
+        $(`<input class='equipo-url formEl w4' data-field='url'></div>`) //
+          .val(url) //
+          .on('change', function () { updateDataSourceLink(this); }) //
+      ) //
+      .append( //
+        $(`<div class='formEl wm' style='text-align: center'>
+              <a rel='noopener noreferrer' target='competicion_datasource'>[ver]</a></div>`)) //
+      .append( //
+        $(`<div class='formEl wm' style='text-align: center'></div>`) //
+          .append( //
+            $(`<button>-</button>`) //
+              .on('click', function () {
+                var $row = $(this).parents('.urlLine').remove();
+              })));
+
+    return $urlline;
+  }
+  function make$DivAddUrl() {
+    var $urlline = $("<div class='urlLine'></div>");
+    $urlline //
+      //.append($(`<div class='formEl w8m'>x</div>`))
+      .append( //
+        $(`<div class='formEl w1' style='text-align: right'></div>`) //
+          .append( //
+            $(`<button>+</button>`) //
+              .on('click', function () {
+                $(this).parents('.urlLine').prev().after(make$DivUrl(0, ""));
+              })));
+    return $urlline;
+  }
+  function updateDataSourceLink(input) {
+    var url = input.value;
+    var $link = $(input).next().find('a')
     if (url) {
       $link.attr('href', url).show();
     } else {
@@ -144,77 +304,75 @@ function EquiposService() {
     }
   }
 
-  /**
-   * Guarda los datos de los equipos
-   */
-  function onEquiposSave() {
-    var equipos = {};
-    $(`div[data-equipo]`).each(function () {
-      var $this = $(this);
-      var e = $this.data('equipo');
-      var $urls = $this.find('input');
-      var equipo = {
-        equipo: EQUIPOS[e].equipo,
-        name: EQUIPOS[e].name,
-        urls: [$urls[0].value, $urls[1].value]
-      };
-      equipos[e] = equipo;
-    });
-    persistor.saveEquipos(equipos);
+  function updateFechaHastaStyle() {
+    var $fechaHasta = $(this);
+    var hoy = dateYYYYMMDD(new Date());
+    if (hoy > $fechaHasta.val())
+      $fechaHasta.addClass('fecha-hasta-superada');
+    else
+      $fechaHasta.removeClass('fecha-hasta-superada');
   }
+  function make$DivEquipo(e) {
+    var equipo = equipos[e];
+    var eqName = equipo.name ?? '';
+    var $divEquipo = $(`<div data-equipo="${e}"></div>`);
+    $(`<div class='titulo-3'>${equipo.equipo}: <em>${eqName}</em></div>`) //
+      .appendTo($divEquipo);
+    var $divCompeticionHasta = $('<div></div>').appendTo($divEquipo);
+    $divCompeticionHasta //
+      .append(`<div class='formEl w1' style='text-align: right'>Comp.: </div>`) //
+      .append(//
+        $(`<input class='equipo-competicion formEl w4'/>`) //
+          .val(equipo.competicion ?? '')) //
+      .append(`<div class='formEl w1' style='text-align: right'>Hasta: </div>`) //
+      .append($(`<input class='equipo-hasta formEl w2'/>`) //
+        .val(equipo.hasta ?? '') //
+        .on('change', updateFechaHastaStyle) //
+        .trigger('change', []));
 
-  /**
-   * Devuelve el panel jquery, lo crea si necesario
-   * @returns 
-   */
-  function getEquiposPanel() {
-    var $pnl = $("#equiposPanel");
-    if ($pnl.length == 0) {
-      $pnl = $("<div id='equiposPanel'>");
-      $pnl.append("<h2>Equipos...</h2>");
-
-      // Lista de equipos
-      var $list = $(`<p id='${EQUIPOS_LIST_ID}'></p>`).appendTo($pnl);
-      var equipos = persistor.loadEquipos();
-      for (var e in equipos) {
-        var equipo = equipos[e];
-        var $line = $(`<div data-equipo="${e}"></div>`) //
-          .appendTo($list);
-        $(`<div>${equipo.equipo}: <em>${equipo.name}</em></div>`) //
-          .appendTo($line);
-        for (var url of equipo.urls) {
-          var $urlline = $("<div></div>").appendTo($line);
-          $(`<input style='width: 400px'></div>`) //
-            .val(url) //
-            .on('change', function () {
-              updateDataSourceLink($(this).next(), this.value);
-            })
-            .appendTo($urlline);
-          var $link = $(`<a rel='noopener noreferrer' target='_blank'>[ver]</a>`) //
-            .appendTo($urlline);
-          updateDataSourceLink($link, url);
-        }
-      }
-
-      var $btns = $("<div class='buttonbox'></div>");
-      $(`<button>Guardar</button>`) //
-        .on('click', onEquiposSave) //
-        .appendTo($btns);
-      $(`<button>Cerrar</button>`) //
-        .on('click', onShowPartidosOnRight) //
-        .appendTo($btns);
-      $pnl.append($btns);
-      $('#right_panel').append($pnl);
+    var $divUrls = $('<div>').appendTo($divEquipo);
+    for (var url of equipo.urls) {
+      make$DivUrl(url).appendTo($divUrls);
     }
-    return $pnl;
+    make$DivAddUrl().appendTo($divUrls);
+
+    //
+
+    return $divEquipo;
   }
 
-  /**
-   * Devuelve la clave de categoría 
+  function make$DivCategoria(cat) {
+    var catName = CATEGORIAS[cat];
+    var $divCat = $(`<div>`);
+    var idCatBody = `datasrc-cat${cat}-body`;
+    var $divCatHead = $(`<div class='titulo-2'>${catName}</div>`) //
+      .on('click', () => $('#' + idCatBody).toggle())
+      .appendTo($divCat);
+    var $divCatBody = $(`<div id='${idCatBody}' style='padding-left: 10px'></div>`) //
+      .toggle(cat == 'sen')
+      .appendTo($divCat);
+    var prefixCat = cat + ":";
+    for (var e in equipos) {
+      if (e.startsWith(prefixCat)) {
+        make$DivEquipo(e).appendTo($divCatBody);
+      }
+    }
+    return $divCat;
+  }
+  function updateEquiposList() {
+    const $list = $(`#${EQUIPOS_LIST_ID}`);
+    $list.empty();
+    for (var cat in CATEGORIAS) {
+      make$DivCategoria(cat).appendTo($list);
+    }
+    $('.equipo-url').trigger('change');
+  }
+
+  /** Devuelve la clave de categoría 
    * @param {*} name (SENIOR, ...)
    * @returns (sen, jub, kad, inf)
    */
-  this.getCategoriaKeyByName = function(name) {
+  this.getCategoriaKeyByName = function (name) {
     for (var c in CATEGORIAS) {
       if (CATEGORIAS[c] == name)
         return c;
@@ -222,12 +380,11 @@ function EquiposService() {
     return undefined;
   }
 
-  /**
-   * Devuelve la clave de sexo
+  /** Devuelve la clave de sexo
    * @param {*} name Neskak / Mutilak
    * @returns nes / mut
    */
-  this.getSexoKeyByName = function(name) {
+  this.getSexoKeyByName = function (name) {
     for (var s in SEXOS) {
       if (SEXOS[s] == name)
         return s;
@@ -244,7 +401,9 @@ function EquiposService() {
    */
   this.showPanel = function () {
     $("#right_panel").children().hide();
-    getEquiposPanel().show();
+    var $pnl = getEquiposPanel();
+    updateEquiposList();
+    $pnl.show();
   }
 
   /**
@@ -257,13 +416,15 @@ function EquiposService() {
   this.getEquipoByName = function (name, cat, nm) {
     cat = this.getCategoriaKeyByName(cat);
     nm = this.getSexoKeyByName(nm);
-    for (e in EQUIPOS) {
-      if (EQUIPOS[e].name == name) {
+    for (e in equipos) {
+      if (equipos[e].name == name) {
         if (e.startsWith(cat + ":" + nm))
-          return EQUIPOS[e];
+          return equipos[e];
       }
     }
     return undefined;
   }
+
+  var equipos = persistor.loadEquipos();
 }
 var equiposService = new EquiposService();
