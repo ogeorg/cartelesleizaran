@@ -25,23 +25,6 @@ function Persistor() {
         // any longer so we release it manually
         URL.revokeObjectURL(jsonObjectUrl);
     }
-    function handleFileSelecting2(fileParsingCallback) {
-        return function (evt) {
-            var files = evt.target.files; // FileList object
-            for (var i = 0, f; f = files[i]; i++) {
-                var reader = new FileReader();
-                reader.onload = (function (theFile) {
-                    return function (e) {
-                        var content = e.target.result;
-                        if (content) {
-                            fileParsingCallback(content);
-                        }
-                    };
-                })(f);
-                reader.readAsText(f);
-            }
-        }
-    }
     function handleFileSelecting(evt) {
         var files = evt.target.files; // FileList object
         for (var i = 0, f; f = files[i]; i++) {

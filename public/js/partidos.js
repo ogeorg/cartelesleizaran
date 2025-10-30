@@ -11,8 +11,9 @@ function TableView() {
         $currentEdit.text($currentEdit.data('origvalue'));
         $currentEdit = null;
     }
-    function makeEditDatoInputText(origvalue) {
-        var $input = $(`<input type='text' value='${origvalue}' />`) //
+    function makeEditDatoInputText(origvalue, length) {
+        var attrLength = length ? `size='${length}'` : ''
+        var $input = $(`<input type='text' value='${origvalue}' ${attrLength}/>`) //
             .on('change', function () {
                 acceptCurrentEdit(this.value);
             }) //
@@ -64,7 +65,8 @@ function TableView() {
         if (valuetype == 'month') {
             var $editwidget = makeEditDatoSelectMes(value);
         } else {
-            var $editwidget = makeEditDatoInputText(value);
+            var length = $edit.data('length')
+            var $editwidget = makeEditDatoInputText(value, length);
         }
         $editwidget.appendTo($edit);
         $currentEdit = $edit;
@@ -142,11 +144,11 @@ function TableView() {
                 <td class='fixed-data'><span data-key='${parKey}:s' title='${competicion}'>${partido.s}</span></td>
                 <td class='editable-data'><span data-key='${parKey}:t'>${partido.t}</span></td>
                 <td class='editable-data'><span data-key='${parKey}:l'>${partido.l}</span></td>
-                <td class='editable-data'><span data-key='${parKey}:t1'>${partido.t1}</span>${links1}</td>
-                <td class='editable-data'><span data-key='${parKey}:g1'>${partido.g1 ?? ''}</span></td></tr>`);
+                <td class='editable-data'><span data-key='${parKey}:t1' data-length='25'>${partido.t1}</span>${links1}</td>
+                <td class='editable-data'><span data-key='${parKey}:g1' data-length='2'>${partido.g1 ?? ''}</span></td></tr>`);
             $body.append(`<tr><td colspan='3' style='text-align: right'><button class='exchange'>x</button></td>
-                <td class='editable-data'><span data-key='${parKey}:t2'>${partido.t2}</span>${links2}</td>
-                <td class='editable-data'><span data-key='${parKey}:g2'>${partido.g2 ?? ''}</span></td></tr>`);
+                <td class='editable-data'><span data-key='${parKey}:t2' data-length='25'>${partido.t2}</span>${links2}</td>
+                <td class='editable-data'><span data-key='${parKey}:g2' data-length='2'>${partido.g2 ?? ''}</span></td></tr>`);
             partidoPos += 1;
         }
         return $cat;

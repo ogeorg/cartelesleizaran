@@ -144,9 +144,12 @@ function EditorService() {
     }
     this.setContent = function (key, config) {
         $data.val(config);
-        $("#currentConfigKey").text(`Configuración: ${key}`);
+        this.setCurrentKey(key);
         $("#btnShowSaveConfig").show();
         this.fillTableWithData();
+    }
+    this.setCurrentKey = function (key) {
+        $("#currentConfigKey").text(`Configuración: ${key}`);
     }
     this.fillDataWithTable = function () {
         var dom = tableView.getDom();
@@ -155,9 +158,9 @@ function EditorService() {
     }
     this.init = function () {
         $data = $("#partidos");
-        $("#btnSaveSaveConfig").on('click', () => configurationsService.saveCurrentConfig($("#partidos").val()));
-        $("#btnShowSaveConfigAs").on('click', () => saveConfigAsService.showPanel());
-        $("#btnShowLoadConfig").on('click', () => configurationsService.showConfigsOnRight(currentConfigKey));
+        $("#btnSaveSaveConfig").on('click', () => configurationsService.saveCurrentConfig($("#partidos").val()) );
+        $("#btnShowSaveConfigAs").on('click', () => saveConfigAsService.saveAs() );
+        $("#btnShowLoadConfig").on('click', () => configurationsUI.showConfigsOnRight());
         $("#btnEquiposPanel").on('click', () => equiposService.showPanel());
         $("#btnShowHelp").on('click', onShowHelp);
 
@@ -232,7 +235,7 @@ $(document).ready(function () {
     $(".btnCerrarRightPanel").on('click', () => tableView.showPartidosOnRight());
 
     saveConfigAsService.init();
-    configurationsService.init();
+    configurationsUI.init();
     tableView.init();
     editorService.init();
 

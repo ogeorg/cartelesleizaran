@@ -136,7 +136,8 @@ const CATEGORIAS = {
   'sen': 'SENIOR',
   'jub': 'JUBENIL',
   'kad': 'KADETE',
-  'inf': 'INFANTIL'
+  'inf': 'INFANTIL',
+  'ale': 'ALEBIN'
 }
 const SEXOS = {
   'nes': 'Neskak',
@@ -370,7 +371,7 @@ function EquiposService() {
 
   /** Devuelve la clave de categoría 
    * @param {*} name (SENIOR, ...)
-   * @returns (sen, jub, kad, inf)
+   * @returns (sen, jub, kad, inf, ale)
    */
   this.getCategoriaKeyByName = function (name) {
     for (var c in CATEGORIAS) {
@@ -409,7 +410,7 @@ function EquiposService() {
   /**
    * Devuelve un equipo por su nombre, categoría y N/M
    * @param {*} name el nombre
-   * @param {*} cat la categoría (sen, jub, kad, inf)
+   * @param {*} cat la categoría (sen, jub, kad, inf, ale)
    * @param {*} nm N/M (nes, mut)
    * @returns 
    */
