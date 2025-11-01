@@ -25,11 +25,91 @@ const datastore = new Datastore({
     projectId: 'leizarangamesmgr',
 });
 
-const KIND = 'jornada';
+const KIND_JORNADA = 'jornada';
+const KIND_EQUIPOS = 'equipos';
+const KIND_PARAMS = 'params';
 
 async function saveJornada(clave, data) {
-    const key = datastore.key([KIND, clave]);
+    console.log("1", clave, data)
+    const key = datastore.key([KIND_JORNADA, clave]);
+    console.log("2")
     const entity = { key, data, };
+    try {
+        var res = await datastore.save(entity);
+        console.log("3")
+        return res;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function getJornadas() {
+    const query = datastore.createQuery(KIND_JORNADA);
+    try {
+        var res = await datastore.runQuery(query);
+    } catch (err) {
+        // console.error(err);
+        console.log("Error, returning empty dict");
+        return {};
+    }
+    try {
+        var list = res[0];
+        var configs = {};
+        for (var entity of list) {
+            var key = entity[datastore.KEY];
+            configs[key.name] = { name: entity.name, data: entity.data };
+        }
+        return configs;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function getAllByKey(kind) {
+    const query = datastore.createQuery(kind);
+    try {
+        var res = await datastore.runQuery(query);
+    } catch (err) {
+        console.log("Error, returning empty dict");
+        return {};
+    }
+    try {
+        var list = res[0];
+        var map = {};
+        for (var entity of list) {
+            var key = entity[datastore.KEY];
+            delete entity[datastore.KEY];
+            map[key.name] = entity;
+        }
+        return map;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function deleteJornada(clave) {
+    const key = datastore.key([KIND_JORNADA, clave]);
+    try {
+        var res = await datastore.delete(key);
+        return res;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function getEquipos() {
+    const query = datastore.createQuery(KIND_EQUIPOS);
+    try {
+        var res = await datastore.runQuery(query);
+        var list = res[0];
+        return list;
+    } catch (err) {
+        console.error(err);
+    }
+}
+async function saveEquipos(data) {
+    const key = datastore.key(KIND_EQUIPOS);
+    const entity = { data };
     try {
         var res = await datastore.save(entity);
         return res;
@@ -38,28 +118,34 @@ async function saveJornada(clave, data) {
     }
 }
 
-async function getJornadas() {
-    const query = datastore.createQuery(KIND);
-    // console.log("query: ", query);
+async function getParamsSets() {
+    const query = datastore.createQuery(KIND_PARAMS);
     try {
         var res = await datastore.runQuery(query);
         var list = res[0];
-        var lines = {};
-        for (var e of list) {
-            var text = e.text;
-            var key = e[datastore.KEY];
-            lines[key.name] = text;
-        }
-        return lines;
+        return list;
     } catch (err) {
         console.error(err);
     }
 }
 
-async function deleteJornada(clave) {
-    const key = datastore.key([KIND, clave]);
+async function getAll(kind) {
+    const query = datastore.createQuery(kind);
     try {
-        var res = await datastore.delete(key);
+        var res = await datastore.runQuery(query);
+        var list = res[0];
+        return list;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+
+async function saveParamsSet(clave, data) {
+    const key = datastore.key([KIND_PARAMS, clave]);
+    const entity = { key, data, excludeFromIndexes: ['code'] };
+    try {
+        var res = await datastore.save(entity);
         return res;
     } catch (err) {
         console.error(err);
@@ -72,22 +158,29 @@ app.get('/', async (req, res, next) => {
 });
 
 app.get('/jornadas', async (req, res, next) => {
-    console.log("getting all lines...");
-    var data = await getJornadas();
+    console.log("getting all jornadas...");
+    var data = JSON.stringify(await getJornadas())
+    console.log("data has length", data.length);
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(data, null, 4));
+    res.end(data, null, 4);
 });
 
 app.post('/jornada/:clave/rename', async (req, res, next) => {
     try {
         const { clave } = req.params;
+        console.log("original key", clave);
         const data = req.body;
+        console.log("data", data);
         const newkey = data.newkey;
+        console.log("newkey", newkey);
         if (!newkey) {
             res.status(400).json({ error: 'La nueva clave es necesaria' });
             return;
         }
+        console.log("rename key", clave, "to", newkey);
+
         // TODO datastore operations
+
         res.status(200).json({ message: `Renamed successfully to !`, clave });
     } catch (error) {
         next(error);
@@ -127,9 +220,52 @@ app.delete('/jornada/:clave', async (req, res, next) => {
     }
 });
 
+app.get('/equipos', async (req, res, next) => {
+    console.log("getting all equipos...");
+    var data = await getAll(KIND_EQUIPOS);
+    console.log("equipos has length", data.length);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(data, null, 4));
+});
+
+app.post('/equipos', async (req, res, next) => {
+    try {
+        const data = req.body;
+        console.log(`post /equipos, con data = ${data}`);
+        await saveEquipos(data);
+        console.log("saved!")
+        res.status(200).json({ message: 'Equipos saved successfully!', clave });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get('/paramssets', async (req, res, next) => {
+    var map = await getAllByKey(KIND_PARAMS);
+    console.log("paramssets has length", map.length);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(map, null, 4));
+});
+
+app.post('/paramsset/:clave', async (req, res, next) => {
+    try {
+        const { clave } = req.params;
+        const paramsset = req.body;
+        console.log(`post /paramsset, con clave = ${clave} y paramsset = ${paramsset}`);
+        if (!clave) {
+            res.status(400).json({ error: 'The "clave" property is required.' });
+            return;
+        }
+        await saveParamsSet(clave, paramsset);
+        console.log("saved!")
+        res.status(200).json({ message: 'Data saved successfully!', clave });
+    } catch (error) {
+        next(error);
+    }
+});
 
 const PORT = parseInt(parseInt(process.env.PORT)) || 8080;
-app.listen(PORT, () => {
+app.listen(PORT, () => { 
     console.log(`App listening on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });

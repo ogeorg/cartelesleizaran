@@ -121,7 +121,7 @@ function EditorService() {
         var partidos = $data.val();
         var dom = parsePartidos(partidos);
         tableView.fillWithDom(dom);
-        tableView.showPartidosOnRight();
+        broadcaster.broadcast('show-right-panel', { panel: 'partidos' });
 
         photopeaCodeService.fillCodeWithDom(dom);
     }
@@ -142,33 +142,107 @@ function EditorService() {
         }
         return lines.join('\n');
     }
-    this.setContent = function (key, config) {
-        $data.val(config);
-        this.setCurrentKey(key);
-        $("#btnShowSaveConfig").show();
-        this.fillTableWithData();
-    }
-    this.setCurrentKey = function (key) {
-        $("#currentConfigKey").text(`Configuración: ${key}`);
-    }
     this.fillDataWithTable = function () {
         var dom = tableView.getDom();
         var data = transformDom2Data(dom);
         $data.val(data);
     }
+    this.saveCurrentConfig = function () {
+        if (!currentConfigKey) {
+            this.saveAs();
+        } else {
+            var data = $("#partidos").val();
+            currentConfig.data = data;
+            configsPersistor.saveConfig(currentConfigKey, currentConfig, function () {
+                broadcaster.broadcast('config-selected', { key: currentConfigKey, config: currentConfig });
+                console.log("Saved");
+            });
+        }
+    }
+
+    this.saveAs = function () {
+        $dlg = $(`<div id="saveAsDialog" title="Guardar la configuración"></div>`);
+        $dlg //
+            .append(`<div>Nombre de la configuración</div>`) //
+            .append(`<input type="text" id="txtConfigNameSaveConfigAs" />`) //
+            .dialog({
+                autoOpen: false,
+                buttons: {
+                    "OK": function () {
+                        var name = $("#txtConfigNameSaveConfigAs").val();
+                        var data = $("#partidos").val();
+                        var config = { name, data };
+                        var key = configurationsService.addConfiguration(config);
+                        configsPersistor.saveConfig(key, config, function () {
+                            broadcaster.broadcast('config-selected', { key, config });
+                            $dlg.dialog("close");
+                        });
+                    },
+                    "Cancel": function () {
+                        $dlg.dialog("close");
+                    }
+                }
+            });
+        $dlg.dialog("open");
+    }
+
     this.init = function () {
         $data = $("#partidos");
-        $("#btnSaveSaveConfig").on('click', () => configurationsService.saveCurrentConfig($("#partidos").val()) );
-        $("#btnShowSaveConfigAs").on('click', () => saveConfigAsService.saveAs() );
-        $("#btnShowLoadConfig").on('click', () => configurationsUI.showConfigsOnRight());
-        $("#btnEquiposPanel").on('click', () => equiposService.showPanel());
-        $("#btnShowHelp").on('click', onShowHelp);
+        $("#btnSaveSaveConfig").on('click', () => {
+            currentConfig.data = $data.val();
+            this.saveCurrentConfig()
+        });
+        $("#btnShowSaveConfigAs").on('click', () => this.saveAs());
+        $("#btnShowConfigsPanel").on('click', () => broadcaster.broadcast('show-right-panel', { panel: 'configs' }));
+        $("#btnEquiposPanel").on('click', () => broadcaster.broadcast('show-right-panel', { panel: 'equipos' }));
+        $("#btnShowHelp").on('click', () => broadcaster.broadcast('show-right-panel', { panel: 'help' }));
 
         $("#txtCapitalize").on('paste', onPaste2Capitalize);
+
+        broadcaster //
+            .register(this, ['config-name-changed'], function (event) {
+                var key = event.key;
+                var config = event.config;
+                if (currentConfigKey == key) {
+                    $("#currentConfigKey").text(`Configuración: ${config.name ?? '--'}`);
+                }
+            }) //
+            .register(this, ['config-selected'], function (event) {
+                currentConfig = event.config;
+                currentConfigKey = event.key;
+                $("#currentConfigKey").text(`Configuración: ${currentConfig.name ?? '--'}`);
+                $data.val(currentConfig.data);
+            });
     }
+    var currentConfig = {};
+    var currentConfigKey = null;
     var $data;
 }
 const editorService = new EditorService();
+
+function Broadcaster() {
+    var eventsMap = {};
+    this.register = function (listener, eventName, handler) {
+        if (!(eventName in eventsMap)) {
+            eventsMap[eventName] = [[listener, handler]];
+        } else {
+            eventsMap[eventName].push([listener, handler]);
+        }
+        return this;
+    }
+    this.broadcast = function (eventName, data) {
+        if (!(eventName in eventsMap))
+            return;
+        for (handler of eventsMap[eventName]) {
+            var listener = handler[0];
+            var callback = handler[1];
+            callback.call(listener, data);
+        }
+    };
+
+}
+const broadcaster = new Broadcaster();
+// broadcaster.broadcast('config-name-changed', { oldname: null, newname: 'abc' })
 
 function PhotopeaCodeService() {
     this.fillCodeWithDom = function (dom) {
@@ -184,14 +258,13 @@ function PhotopeaCodeService() {
             }
         var json = "var data = " + JSON.stringify(dom2) + "\n\n";
         var plantilla = $("#selPlantillas").val();
-        script = paramsPersistor.getParams(plantilla).code ?? $("#basecode4Photopea").val();
-        script = script.replace("$$PARAMS$$", paramsPersistor.getParamsAsStr(plantilla));
+        script = parametersService.getParams(plantilla).code ?? $("#basecode4Photopea").val();
+        script = script.replace("$$PARAMS$$", parametersService.getParamsAsStr(plantilla));
         $("#script").val(json + script);
     }
     this.fillCodeWithTable = function () {
         var dom = tableView.getDom();
         this.fillCodeWithDom(dom)
-
     }
 
 }
@@ -200,10 +273,18 @@ const photopeaCodeService = new PhotopeaCodeService();
 // Help panel
 // ----------------------------------------------
 
-function onShowHelp() {
-    $("#right_panel").children().hide();
-    $("#helpRightPanel").show();
+function HelpUI() {
+    //broadcaster.broadcast('show-right-panel', { panel: 'equipos' }));
+    broadcaster //
+        .register(this, ['show-right-panel'], function (event) {
+            if (event.panel == 'help') {
+                $("#helpRightPanel").show();
+            } else {
+                $("#helpRightPanel").hide();
+            }
+        });
 }
+const helpUI = new HelpUI();
 
 // ----------------------------------------------
 // Params panel
@@ -228,19 +309,21 @@ $(document).ready(function () {
     $("#btnDom2Javascript").on("click", () => photopeaCodeService.fillCodeWithTable());
 
     // Botones de abajo
-    $("#btnShowScriptParams").on('click', () => parametersService.showScriptParamsOnRight());
+    $("#btnShowScriptParams").on('click', () => broadcaster.broadcast('show-right-panel', { panel: 'params' }));
     $("#btnPostScript").on('click', runScript);
 
     // Boton general
     $(".btnCerrarRightPanel").on('click', () => tableView.showPartidosOnRight());
 
-    saveConfigAsService.init();
     configurationsUI.init();
     tableView.init();
     editorService.init();
+    equiposUI.init();
+    parametersService.init();
+    broadcaster.broadcast('show-right-panel', { panel: 'equipos' });
 
-    editorService.fillTableWithData();
-    
+    // editorService.fillTableWithData();
+
     slideDown();
 });
 

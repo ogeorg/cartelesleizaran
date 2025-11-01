@@ -1,5 +1,5 @@
 
-const PARAMS_NOT2SCRIPT = ['__useDefault__', 'code'];
+const PARAMS_NOT2SCRIPT = ['$$useDefault$$', 'code'];
 
 function ParametersService() {
     const PARAM_DEFINITIONS = {
@@ -7,12 +7,12 @@ function ParametersService() {
         offsetright: { dflt: "130", title: "Espacio a al derecha" },
         code: { dflt: "", title: "Codigo", type: 'textarea' },
     }
-    const PLANTILLA_DFLT_KEY = '__default__';
+    const PLANTILLA_DFLT_KEY = '$$default$$';
     const PLANTILLA_DFLT_NAME = 'Valores por defecto';
     const PARAMS_SEL_PLANTILLAS_ID = 'params-selPlantillas';
     const PARAMS_CHK_USE_DFLT_ID = 'params-useDefault';
     const PARAMS_DIV_USE_DFLT_ID = 'params-divUseDflt';
-    const PARAMS_USE_DFLT_KEY = '__useDefault__'
+    const PARAMS_USE_DFLT_KEY = '$$useDefault$$'
     const PARAMS_LIST_PARAMS = 'params-list';
 
     function $makeSelectPlantillasParams() {
@@ -41,14 +41,9 @@ function ParametersService() {
             $(`#${PARAMS_LIST_PARAMS}`).show();
     }
 
-    this.showScriptParamsOnRight = function () {
-        $("#right_panel").children().hide();
-        this.get$ConfigurationPanel().show();
-        initParamsPanel();
-    }
-
-    function initParamsPanel() {
-        var params = paramsPersistor.getParams(getSelectedPlantillasParamsKey());
+    var initParamsPanel = function () {
+        var paramsKey = getSelectedPlantillasParamsKey();
+        var params = paramsSets[paramsKey] ?? {};
 
         var useDefault = params[PARAMS_USE_DFLT_KEY] ?? false;
         $(`#${PARAMS_CHK_USE_DFLT_ID}`).prop('checked', useDefault);
@@ -93,8 +88,12 @@ function ParametersService() {
                 var value = $this.val();
                 params[param] = value;
             });
-        paramsPersistor.saveParams(getSelectedPlantillasParamsKey(), params);
-        initParamsPanel();
+        var paramsKey = getSelectedPlantillasParamsKey();
+        paramsPersistor.saveParamsSet(paramsKey, params) //
+            .then(function () {
+                paramsSets[paramsKey] = params;
+                initParamsPanel();
+            });
     }
     function make$Botonera() {
         var $btns = $("<div class='buttonbox'></div>");
@@ -104,12 +103,9 @@ function ParametersService() {
         $(`<button id='btnUndoParamsChange'>Desahcer cambios</button>`) //
             .on('click', onUndoParamChange) //
             .appendTo($btns);
-        $(`<button>Cerrar</button>`) //
-            .on('click', () => tableView.showPartidosOnRight()) //
-            .appendTo($btns);
         return $btns;
     }
-    this.get$ConfigurationPanel = function () {
+    var get$ParametersPanel = function () {
         if (!$pnl) {
             $pnl = $("<div id='paramsRightPanel'>").appendTo($('#right_panel'));
 
@@ -122,7 +118,7 @@ function ParametersService() {
             var $pPlant = $("<p>Panel de parametros para </p>").appendTo($pnl);
             $makeSelectPlantillasParams() //
                 .appendTo($pPlant) //
-                .on('change', () => changePlantillaParams(this.value));
+                .on('change', (e) => changePlantillaParams(e.target.value));
 
             var $divUseDflt = $(`<div id='${PARAMS_DIV_USE_DFLT_ID}'></div>`).appendTo($pnl);
             $(`<input type='checkbox' id='${PARAMS_CHK_USE_DFLT_ID}'>`) //
@@ -142,27 +138,12 @@ function ParametersService() {
         }
         return $pnl;
     }
-
-    var $pnl;
-}
-const parametersService = new ParametersService();
-
-function ParametersPersistor() {
-    function loadAllParams() {
-        return JSON.parse(localStorage.getItem("params")) ?? {};
-    }
     this.getParams = function (paramsKey) {
-        var allParams = loadAllParams();
-        var params = allParams[paramsKey] ?? {};
-        return params;
+        return paramsSets[paramsKey] ?? {};
     }
-    this.saveParams = function (paramsKey, params) {
-        var allParams = loadAllParams();
-        allParams[paramsKey] = params;
-        localStorage.setItem("params", JSON.stringify(allParams));
-    }
+
     this.getParamsAsStr = function (plantilla) {
-        var params = this.getParams(plantilla);
+        var params = paramsSets[plantilla];
         var res = [];
         for (var p in params) {
             if (PARAMS_NOT2SCRIPT.includes(p))
@@ -171,6 +152,63 @@ function ParametersPersistor() {
         }
         return '{' + res.join(', ') + '}';
     }
+
+    this.init = function () {
+        paramsPersistor.getParamsSets() //
+            .then(function (sets) {
+                paramsSets = sets;
+                broadcaster //
+                    .register(this, ['show-right-panel'], function (event) {
+                        var $pnl = get$ParametersPanel();
+                        if (event.panel == 'params') {
+                            $pnl.show();
+                        } else {
+                            $pnl.hide();
+                        }
+                    });
+            });
+    }
+
+    var paramsSets;
+    var $pnl;
+}
+const parametersService = new ParametersService();
+
+function ParametersPersistor() {
+
+    this.getParamsSets = function () {
+        return $.ajax({
+            url: 'paramssets',
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function (response) {
+                var paramsSets = response; // JSON.parse(response);
+                if (paramsSets == null) paramsSets = {};
+                return paramsSets;
+            },
+            error: function (xhr, status, error) {
+                console.error('Get failed:', status, error);
+            }
+        });
+    }
+
+    this.saveParamsSet = function (paramsKey, paramsSet) {
+        return $.ajax({
+            url: 'paramsset/' + paramsKey,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(paramsSet),
+            dataType: 'json',
+            success: function (response) {
+                console.log('Save successful:', response);
+            },
+            error: function (xhr, status, error) {
+                console.error('Save failed:', status, error);
+            }
+        });
+    }
+
 }
 var paramsPersistor = new ParametersPersistor();
 

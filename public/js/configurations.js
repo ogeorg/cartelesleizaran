@@ -38,7 +38,7 @@ function ConfigPersistor() {
             url: 'jornada/' + clave,
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ text: config }),
+            data: JSON.stringify(config),
             dataType: 'json',
             success: function (response) {
                 console.log('Save successful:', response);
@@ -48,7 +48,6 @@ function ConfigPersistor() {
                 console.error('Save failed:', status, error);
             }
         });
-
     }
     this.loadConfigs = function () {
         var configs = JSON.parse(localStorage.getItem("configs"));
@@ -78,37 +77,21 @@ function ConfigPersistor() {
     this.download = function () {
         persistor.download("configs", "configuraciones_partidos_leizaran.json");
     }
-    this.deleteConfig = function (clave, onSuccess) {
-        $.ajax({
+    this.deleteConfig = function (clave) {
+        return $.ajax({
             url: 'jornada/' + clave,
             type: 'DELETE',
             contentType: 'application/json',
             dataType: 'json',
             success: function (response) {
                 console.log('Delete successful:', response);
-                onSuccess();
             },
             error: function (xhr, status, error) {
                 console.error('Save failed:', status, error);
             }
         });
     }
-    this.renameConfig = function (oldKey, newKey, onSuccess) {
-        $.ajax({
-            url: 'jornada/' + oldKey + '/rename',
-            type: 'POST',
-            contentType: 'application/json',
-            data: { newkey: newKey },
-            dataType: 'json',
-            success: function (response) {
-                console.log('Rename successful:', response);
-                onSuccess();
-            },
-            error: function (xhr, status, error) {
-                console.error('Save failed:', status, error);
-            }
-        });
-    };
+
     this.uploadConfigs = function (onSuccess) {
         persistor.getUploadDialog(function (content) {
             const data = JSON.parse(content);
@@ -124,7 +107,11 @@ var configsPersistor = new ConfigPersistor();
 // PANEL CONFIG
 //////////////////////////////////////////////////
 
-
+// una configuracion tiene
+// una clave key
+// un nombre name \___ forma la config
+// un texto  data /
+// cuando se crea, se le da una clave 'key' fija
 
 
 function ConfigurationsService() {
@@ -138,31 +125,22 @@ function ConfigurationsService() {
     this.setCurrentKey = function (key) {
         _setCurrentKey(key);
     }
-
-    this.saveCurrentConfig = function (config) {
-        if (!currentConfigKey) {
-            saveConfigAsService.saveAs();
-        }
-        else {
-            configs[currentConfigKey] = config;
-            configsPersistor.storeConfigs(configs);
-            configsPersistor.saveConfig(currentConfigKey, config);
-        }
+    this.getCurrentKey = function () {
+        return currentConfigKey;
     }
-    this.deleteConfig = function (clave, onSuccess) {
+    this.deleteConfig = function (key, onSuccess) {
         // una vez eliminado en datastore, elimina aquí
-        configsPersistor.deleteConfig(key, function () {
+        configsPersistor.deleteConfig(key).then(function () {
             delete configs[key];
-            onSuccess();
+            onSuccess(); // para que la UI haga lo suyo
         });
     };
-    this.renameConfig = function (oldKey, newKey, onSuccess) {
-        if (!(newKey in configs)) {
-            configsPersistor.renameConfig(oldKey, newKey, function () {
-                var config = configs[oldKey];
-                configs[newKey] = config;
-                delete configs[key];
-                onSuccess();
+    this.renameConfig = function (key, newName, onSuccess) {
+        if (key in configs) {
+            var config = configs[key];
+            config.name = newName;
+            configsPersistor.saveConfig(key, config, function () {
+                onSuccess(); // para que la UI cambie el nombre
             });
         }
     };
@@ -178,16 +156,25 @@ function ConfigurationsService() {
             onSuccess();
         });
     };
-    this.getConfigurations = function() {
+    this.getConfigurations = function () {
         return configs;
     }
     this.getConfiguration = function (key) {
         return configs[key];
     }
+    this.addConfiguration = function (config) {
+        var key = crypto.randomUUID().substring(0, 8);
+        configs[key] = config;
+        return key;
+    }
     this.init = async function () {
         configsPersistor.getConfigurations().then(function (data) {
             configs = data;
         });
+        broadcaster //
+            .register(this, ['config-selected'], function (event) {
+                currentConfigKey = event.key;
+            });
     }
 
     var currentConfigKey = null;
@@ -199,13 +186,12 @@ function ConfigurationsUI(configurationsService) {
     function get$ConfigurationPanel() {
         if (!$pnl) {
             $pnl = $("<div id='configurations-panel' style='display: none;'>");
-            $pnl.append("<h2>Configuraciones</h2>");
-            make$Botonera().appendTo($pnl);
-
-            $pnl.append(`<table id="configsList"><thead><tr><th>Clave</th><th>Acciones</th></tr></thead><tbody></tbody></table>`);
-
-            $(`<pre id="configPreview"></pre>`).appendTo($pnl);
-            $('#right_panel').append($pnl);
+            $pnl //
+                .append("<h2>Configuraciones</h2>") //
+                .append(make$Botonera()) //
+                .append(`<table id="configsList"><thead><tr><th>Clave</th><th>Acciones</th></tr></thead><tbody></tbody></table>`) //                
+                .append($(`<div id='configNamePreview' style='margin-top: 10px'></div><pre id="configPreview"></pre>`)) //
+                .appendTo($('#right_panel'));
         }
         return $pnl;
     }
@@ -238,27 +224,26 @@ function ConfigurationsUI(configurationsService) {
             updateTable();
         });
     }
-    function onLoadDefaultConfig() {
-        editorService.setContent(undefined, configEjemplo);
-    }
     /** Recrea la tabla, con una configuracion seleccionada opcional */
-    function updateTable(selectedKey) {
+    function updateTable() {
         // First we create the table
         var $body = $("#configsList tbody");
         $body.empty();
         $("#configPreview").empty();
 
         var configs = configurationsService.getConfigurations();
-        for (var c of Object.keys(configs).sort()) {
+        var currentKey = configurationsService.getCurrentKey();
+        for (var key of Object.keys(configs).sort()) {
+            var name = configs[key].name;
             var b1 = `<button class='btnSeeConfig'>Ver</button>`;
             var b2 = `<button class='btnLoadConfig'>Cargar</button>`;
             var b3 = `<button class='btnRemoveConfig'>Eliminar</button>`;
             var b4 = `<button class='btnRenameConfig'>Renombrar</button>`;
-            var $tr = $(`<tr data-key='${c}'><td class='configKey'>${c}</td><td class='buttonbox'>${b1}${b2}${b3}${b4}</td></tr>`).appendTo($body);
-            if (c == selectedKey) {
+            var $tr = $(`<tr data-key='${key}'><td class='configKey'>${name}</td><td class='buttonbox'>${b1}${b2}${b3}${b4}</td></tr>`).appendTo($body);
+            if (key == currentKey) {
                 $currTr = $tr;
                 $currTr.addClass('viewedConfig');
-                $("#configPreview").text(configs[c]);
+                // $("#configPreview").text(configs[key].data);
             }
         }
 
@@ -278,21 +263,17 @@ function ConfigurationsUI(configurationsService) {
 
     /** Preview de una configuraion */
     function onPreviewConfig() {
-        if ($currTr)
-            $currTr.removeClass('viewedConfig');
         $currTr = get$tr(this);
-        $currTr.addClass('viewedConfig');
         var key = $currTr.data('key');
         var config = configurationsService.getConfiguration(key);
-        $("#configPreview").text(config);
+
+        $("#configNamePreview").text(config.name);
+        $("#configPreview").text(config.data);
     }
 
     function onLoadConfig() {
         var key = get$tr(this).data('key');
-        var config = configurationsService.getConfiguration(key);
-        // editorUI.loadConfig(key), que pregunta a configurationService.
-        editorService.setContent(key, config);
-        _setCurrentKey(key);
+        broadcaster.broadcast('config-selected', { key, config: configurationsService.getConfiguration(key) });
     }
 
     function onRenameConfig() {
@@ -307,9 +288,10 @@ function ConfigurationsUI(configurationsService) {
             $btnOk.prop("disabled", exists);
         })
         $btnOk.on("click", function () {
-            var newKey = $name.val();
-            configurationsService.renameConfig(key, newKey, function () {
-                updateTable(newKey);
+            var name = $name.val();
+            configurationsService.renameConfig(key, name, function () {
+                updateTable();
+                broadcaster.broadcast('config-name-changed', { key, config: { name } });
             });
         });
     }
@@ -322,15 +304,9 @@ function ConfigurationsUI(configurationsService) {
                 currentConfigKey = null;
             }
             configurationsService.deleteConfig(key, function () {
-                showConfigsOnRight(currentConfigKey);
+                updateTable();
             });
         }
-    }
-    /** Mostra una configuracion concreta.  Tambien se llama para refrescar el panel */
-    this.showConfigsOnRight = function (selectedKey) {
-        $("#right_panel").children().hide();
-        updateTable(configurationsService.getConfigurations(), selectedKey);
-        $pnl.show();
     }
 
     function onMakeNextConfig() {
@@ -355,19 +331,40 @@ function ConfigurationsUI(configurationsService) {
             partidosByCat[cat].push(partido);
         }
 
-        var config = `[Fecha]\n${fechaJornada}`;
+        var data = `[Fecha]\n${fechaJornada}`;
         for (var c in partidosByCat) {
-            config += `\n[${CATEGORIAS[c]}]\n`;
+            data += `\n[${CATEGORIAS[c]}]\n`;
             var partidos = partidosByCat[c];
             for (var partido of partidos) {
-                config += partido + '\n';
+                data += partido + '\n';
             }
         }
-        editorService.setContent(undefined, config);
+        var config = { name: "noname", data };
+        var key = configurationsService.addConfiguration(config);
+        broadcaster.broadcast('config-selected', { key, config });
     }
+
+    function onLoadDefaultConfig() {
+        var config = { name: null, data: configEjemplo };
+        broadcaster.broadcast('config-selected', { key: null, config });
+    }
+
     this.init = async function () {
         await configurationsService.init();
         $pnl = get$ConfigurationPanel();
+        broadcaster //
+            .register(this, ['config-selected'], function (event) {
+                var selectedKey = event.key;
+                updateTable(selectedKey);
+            }) //
+        .register(this, ['show-right-panel'], function (event) {
+            if (event.panel == 'configs') {
+                updateTable();
+                $pnl.show();
+            } else {
+                $pnl.hide();
+            }
+        });
     }
 
     var $currTr = null;
@@ -376,45 +373,3 @@ function ConfigurationsUI(configurationsService) {
 
 const configurationsService = new ConfigurationsService();
 const configurationsUI = new ConfigurationsUI(configurationsService);
-
-//////////////////////////////////////////////////
-// PANEL SAVE AS
-//////////////////////////////////////////////////
-
-function SaveConfigAsService() {
-
-    function getDialog() {
-
-        $dlg = $(`<div id="saveAsDialog" title="Guardar la configuración"></div>`);
-        $dlg //
-            .append(`<div>Nombre de la configuración</div>`) //
-            .append(`<input type="text" id="txtConfigNameSaveConfigAs" />`) //
-            .dialog({
-                autoOpen: false,
-                buttons: {
-                    "OK": function () {
-                        var key = $("#txtConfigNameSaveConfigAs").val();
-                        var config = $("#partidos").val();
-                        configsPersistor.saveConfig(key, config, function () {
-                            editorService.setCurrentKey(key);
-                            $dlg.dialog("close");
-                        });
-                    },
-                    "Cancel": function () {
-                        $dlg.dialog("close");
-                    }
-                }
-            });
-        return $dlg;
-    }
-    this.saveAs = function () {
-        $dlg = getDialog();
-        $dlg.dialog("open");
-    }
-
-    this.init = function () {
-        // $pnl = get$Panel();
-    }
-    var $dlg;
-}
-saveConfigAsService = new SaveConfigAsService();

@@ -229,13 +229,22 @@ function TableView() {
         makeFecha(dom.fecha);
         makeCategorias(dom.categorias);
     }
-
-    this.showPartidosOnRight = function () {
-        $("#right_panel").children().hide();
-        $pnl.show();
-    }
     this.init = function () {
         $pnl = getPartidosPanel();
+        broadcaster //
+            .register(this, ['config-selected'], function (event) {
+                var dom = parsePartidos(event.config.data);
+                this.fillWithDom(dom);
+                // this.showPartidosOnRight();
+                photopeaCodeService.fillCodeWithDom(dom);
+            }) //
+            .register(this, ['show-right-panel'], function (event) {
+                if (event.panel == 'partidos') {
+                    $pnl.show();
+                } else {
+                    $pnl.hide();
+                }
+            });
     }
 
     var $currentEdit = null;
