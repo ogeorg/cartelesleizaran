@@ -33,7 +33,7 @@ async function saveJornada(clave, data) {
     console.log("1", clave, data)
     const key = datastore.key([KIND_JORNADA, clave]);
     console.log("2")
-    const entity = { key, data, };
+    const entity = { key, data, excludeFromIndexes: ['data'] };
     try {
         var res = await datastore.save(entity);
         console.log("3")
@@ -107,7 +107,9 @@ async function getEquipos() {
         console.error(err);
     }
 }
+
 async function saveEquipos(data) {
+    console.log("--saveEquipos--");
     const key = datastore.key([KIND_EQUIPOS, 'equipos']);
     const entity = { key, data, excludeFromIndexes: ['equipos'] };
     try {

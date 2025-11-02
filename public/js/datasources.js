@@ -1,146 +1,21 @@
 const EQUIPOS = {
-    "sen:nes:1": {
-        equipo: "Senior neska",
-        name: "Leizaran Lanbroa Taberna",
-        urls: [
-            {
-                desc: 'Kirolak',
-                url: "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=220&cat=18&gr=1&clas=0"
-            },
-            {
-                desc: 'Vasca',
-                url: "https://intranet.fvascabm.com/competiciones.asp?torneo=3312"
-            }
-        ]
-    },
-    "sen:mut:1": {
-        "equipo": "Senior mutila 1",
-        "name": "Leizaran Ernio Inmobiliaria",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=220&cat=17&gr=1&clas=0",
-            "https://intranet.fvascabm.com/competiciones.asp?torneo=3311"
-        ]
-    },
-    "sen:mut:2": {
-        "equipo": "Senior mutila 2",
-        "name": "Leizaran Eskubaloia",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=224&cat=12&gr=1&clas=0",
-            "https://www.gieskubaloia.eus/es/competicion/calendario/?temporada=28&referencia=224&categoria=12&grupo=1"
-        ]
-    },
-    "jub:nes:1": {
-        "equipo": "Jubenil neska",
-        "name": "Leizaran BricoGoros",
-        "urls": [
-            "https://www.gieskubaloia.eus/es/competicion/calendario/?temporada=28&referencia=224&categoria=15",
-            ""
-        ]
-    },
-    "jub:mut:1": {
-        "equipo": "Jubenil mutila",
-        "name": "Leizaran Javier Zeramikak",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=220&cat=20&gr=1&clas=0",
-            "https://intranet.fvascabm.com/competiciones.asp?torneo=3313"
-        ]
-    },
-    "kad:nes:1": {
-        "equipo": "Kadete neska 1",
-        "name": "Leizaran La Salle Berrozpe",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=224&cat=16&gr=2&clas=0",
-            "https://www.gieskubaloia.eus/es/competicion/calendario/?temporada=28&referencia=224&categoria=16&grupo=2"
-        ]
-    },
-    "kad:nes:2": {
-        "equipo": "Kadete neska 2",
-        "name": "Leizaran Horia",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=224&cat=16&gr=5&clas=0",
-            "https://www.gieskubaloia.eus/es/competicion/calendario/?temporada=28&referencia=224&categoria=16&grupo=5"
-        ]
-    },
-    "kad:mut:1": {
-        "equipo": "Kadete mutila 1",
-        "name": "Leizaran Camacho Construcción",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=220&cat=22&gr=1&clas=0",
-            "https://intranet.fvascabm.com/competiciones.asp?torneo=3314"
-        ]
-    },
-    "kad:mut:2": {
-        "equipo": "Kadete mutila 2",
-        "name": "Leizaran Horia",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=224&cat=14&gr=3&clas=0",
-            "https://www.gieskubaloia.eus/es/competicion/calendario/?temporada=28&referencia=224&categoria=14&grupo=3"
-        ]
-    },
-    "kad:mut:3": {
-        "equipo": "Kadete mutila 2",
-        "name": "Leizaran Txuria",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=224&cat=14&gr=3&clas=0https://www.gieskubaloia.eus/es/competicion/calendario/?temporada=28&referencia=224&categoria=14&grupo=3",
-            ""
-        ]
-    },
-    "inf:nes:1": {
-        "equipo": "Infantil neska 1",
-        "name": "Leizaran McDonalds",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=225&cat=38&gr=2&clas=0",
-            ""
-        ]
-    },
-    "inf:nes:2": {
-        "equipo": "Infantil neska 2",
-        "name": "Leizaran Urkabe",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=225&cat=38&gr=6&clas=0",
-            ""
-        ]
-    },
-    "inf:mut:1": {
-        "equipo": "Infantil mutila 1",
-        "name": "Leizaran Oianume",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=225&cat=36&gr=2&clas=0",
-            ""
-        ]
-    },
-    "inf:mut:2": {
-        "equipo": "Infantil mutila 2",
-        "name": "Leizaran Horia",
-        "urls": [
-            "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=225&cat=36&gr=4&clas=0",
-            ""
-        ]
-    },
-    "ale:nes:1": {
-        "equipo": "Infantil neska 1",
-        "name": "Leizaran Txuria",
-        "competicion": "GIPUZKOAKO ALEBIN NESKEN 1.Fasea TXAPELKETA (B multzoa)",
-        "hasta": "2026-03-22",
-        "urls": [
-        ]
-    },
-    "ale:nes:2": {
-        "equipo": "Infantil neska 2",
-        "name": "Leizaran Gorria",
-        "competicion": "GIPUZKOAKO ALEBIN NESKEN 1.Fasea TXAPELKETA (A multzoa)",
-        "hasta": "2026-03-22",
-        "urls": [
-        ]
-    },
-    "ale:mut:1": {
-        "equipo": "Infantil mutila",
-        "name": "Leizaran Beltza",
-        "competicion": "GIPUZKOAKO ALEBIN MUTILEN TXAPELKETA",
-        "hasta": "2026-05-31",
-        "urls": [
-        ]
-    }
+    "sen:nes:1": { equipo: "Senior neska", name: "Leizaran Lanbroa Taberna", urls: [] },
+    "sen:mut:1": { equipo: "Senior mutila 1", name: "Leizaran Ernio Inmobiliaria", urls: [] },
+    "sen:mut:2": { equipo: "Senior mutila 2", name: "Leizaran Eskubaloia", urls: [] },
+    "jub:nes:1": { equipo: "Jubenil neska", name: "Leizaran BricoGoros", urls: [] },
+    "jub:mut:1": { equipo: "Jubenil mutila", name: "Leizaran Javier Zeramikak", urls: [] },
+    "kad:nes:1": { equipo: "Kadete neska 1", name: "Leizaran La Salle Berrozpe", urls: [] },
+    "kad:nes:2": { equipo: "Kadete neska 2", name: "Leizaran Horia", urls: [] },
+    "kad:mut:1": { equipo: "Kadete mutila 1", name: "Leizaran Camacho Construcción", urls: [] },
+    "kad:mut:2": { equipo: "Kadete mutila 2", name: "Leizaran Horia", urls: [] },
+    "kad:mut:3": { equipo: "Kadete mutila 2", name: "Leizaran Txuria", urls: [] },
+    "inf:nes:1": { equipo: "Infantil neska 1", name: "Leizaran McDonalds", urls: [] },
+    "inf:nes:2": { equipo: "Infantil neska 2", name: "Leizaran Urkabe", urls: [] },
+    "inf:mut:1": { equipo: "Infantil mutila 1", name: "Leizaran Oianume", urls: [] },
+    "inf:mut:2": { equipo: "Infantil mutila 2", name: "Leizaran Horia", urls: [] },
+    "ale:nes:1": { equipo: "Alebin neska 1", name: "Leizaran Txuria", urls: [] },
+    "ale:nes:2": { equipo: "Alebin neska 2", name: "Leizaran Gorria", urls: [] },
+    "ale:mut:1": { equipo: "Alebin mutila", name: "Leizaran Beltza", urls: [] }
 }
 
 function dateYYYYMMDD(date) {
@@ -436,16 +311,17 @@ function EquiposUI(equiposService) {
 
         return $urlline;
     }
+    function addUrl() {
+        $(this).parents('.addUrlLine').before(make$DivUrl(0, ""));
+    }
     function make$DivAddUrl() {
-        var $urlline = $("<div class='urlLine'></div>");
+        var $urlline = $("<div class='addUrlLine'></div>");
         $urlline //
             .append( //
                 $(`<div class='formEl w1' style='text-align: right'></div>`) //
                     .append( //
                         $(`<button>+</button>`) //
-                            .on('click', function () {
-                                $(this).parents('.urlLine').prev().after(make$DivUrl(0, ""));
-                            })));
+                            .on('click', addUrl)));
         return $urlline;
     }
     function make$DivEquipo(e) {

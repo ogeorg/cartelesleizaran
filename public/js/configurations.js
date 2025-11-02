@@ -25,21 +25,19 @@ const BASE_URL = "https://8080-cs-1060876045999-default.cs-europe-west1-xedi.clo
 function ConfigPersistor() {
     var persistor = new Persistor();
 
-    this.saveConfig = function (clave, config, onSuccess) {
-        $.ajax({
-            url: 'jornada/' + clave,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(config),
-            dataType: 'json',
-            success: function (response) {
-                console.log('Save successful:', response);
-                onSuccess();
-            },
-            error: function (xhr, status, error) {
-                console.error('Save failed:', status, error);
-            }
-        });
+    this.saveConfig = async function (clave, config) {
+        try {
+            const response = await $.ajax({
+                url: 'jornada/' + clave,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(config),
+                dataType: 'json',
+            });
+            console.log('Save successful:', response);
+        } catch (jqXHR) {
+            console.error('Save failed:', jqXHR.statusText, jqXHR.status, jqXHR);
+        }
     }
     
     /**
@@ -121,13 +119,12 @@ function ConfigurationsService() {
             onSuccess(); // para que la UI haga lo suyo
         });
     };
-    this.renameConfig = function (key, newName, onSuccess) {
+    this.renameConfig = async function (key, newName, onSuccess) {
         if (key in configs) {
             var config = configs[key];
             config.name = newName;
-            configsPersistor.saveConfig(key, config, function () {
-                onSuccess(); // para que la UI cambie el nombre
-            });
+            await configsPersistor.saveConfig(key, config);
+            onSuccess(); // para que la UI cambie el nombre
         }
     };
     this.downloadAll = function () {

@@ -148,16 +148,15 @@ function EditorService() {
         var data = transformDom2Data(dom);
         $data.val(data);
     }
-    this.saveCurrentConfig = function () {
+    this.saveCurrentConfig = async function () {
         if (!currentConfigKey) {
             this.saveAs();
         } else {
             var data = $("#partidos").val();
             currentConfig.data = data;
-            configsPersistor.saveConfig(currentConfigKey, currentConfig, function () {
-                broadcaster.broadcast('config-selected', { key: currentConfigKey, config: currentConfig });
-                console.log("Saved");
-            });
+            await configsPersistor.saveConfig(currentConfigKey, currentConfig);
+            broadcaster.broadcast('config-selected', { key: currentConfigKey, config: currentConfig });
+            console.log("Saved");
         }
     }
 
@@ -169,15 +168,14 @@ function EditorService() {
             .dialog({
                 autoOpen: false,
                 buttons: {
-                    "OK": function () {
+                    "OK": async function () {
                         var name = $("#txtConfigNameSaveConfigAs").val();
                         var data = $("#partidos").val();
                         var config = { name, data };
                         var key = configurationsService.addConfiguration(config);
-                        configsPersistor.saveConfig(key, config, function () {
-                            broadcaster.broadcast('config-selected', { key, config });
-                            $dlg.dialog("close");
-                        });
+                        await configsPersistor.saveConfig(key, config);
+                        broadcaster.broadcast('config-selected', { key, config });
+                        $dlg.dialog("close");
                     },
                     "Cancel": function () {
                         $dlg.dialog("close");

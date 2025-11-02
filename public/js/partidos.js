@@ -5,6 +5,7 @@ function TableView() {
         $currentEdit.empty();
         $currentEdit.text(newvalue);
         $currentEdit = null;
+        editorService.fillDataWithTable()
     }
     function cancelCurrentEdit() {
         $currentEdit.empty();
@@ -52,6 +53,7 @@ function TableView() {
     function onPartidoAlluralde() {
         var $span = $(this).parent().find("span");
         $span.text("Allurralde Kiroldegia");
+        editorService.fillDataWithTable()
     }
     function onEditDato() {
         var $this = $(this);
@@ -123,7 +125,7 @@ function TableView() {
         var $tdGol2 = $trEq2.find("span[data-key$=':g2']");
         exchangeTexts($tdGol1, $tdGol2);
 
-        console.log($tdEq1);
+        editorService.fillDataWithTable()
     }
     function makeCategoria(categoria) {
         var categoriaKey = equiposService.getCategoriaKeyByName(categoria.titulo);
