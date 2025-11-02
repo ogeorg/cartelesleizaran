@@ -176,37 +176,31 @@ const parametersService = new ParametersService();
 
 function ParametersPersistor() {
 
-    this.getParamsSets = function () {
-        return $.ajax({
-            url: 'paramssets',
-            type: 'GET',
-            contentType: 'application/json',
-            dataType: 'json',
-            success: function (response) {
-                var paramsSets = response; // JSON.parse(response);
-                if (paramsSets == null) paramsSets = {};
-                return paramsSets;
-            },
-            error: function (xhr, status, error) {
-                console.error('Get failed:', status, error);
-            }
-        });
+    this.getParamsSets = async function () {
+        try {
+            return paramsSets = await $.ajax({
+                url: 'paramssets',
+                type: 'GET',
+                contentType: 'application/json',
+                dataType: 'json'
+            }) ?? {};
+        } catch (error) {
+            console.error('Get failed:', error);
+        }
     }
 
-    this.saveParamsSet = function (paramsKey, paramsSet) {
-        return $.ajax({
-            url: 'paramsset/' + paramsKey,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(paramsSet),
-            dataType: 'json',
-            success: function (response) {
-                console.log('Save successful:', response);
-            },
-            error: function (xhr, status, error) {
-                console.error('Save failed:', status, error);
-            }
-        });
+    this.saveParamsSet = async function (paramsKey, paramsSet) {
+        try {
+            return await $.ajax({
+                url: 'paramsset/' + paramsKey,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(paramsSet),
+                dataType: 'json'
+            });
+        } catch (error) {
+            console.error('Get failed:', error);
+        }
     }
 
 }

@@ -136,13 +136,14 @@ body {
     white-space: nowrap;
 }
 
-.dataTableContainer {
+#fechaTabla, .partidosCat {
     padding: 5px 15px 5px 5px;
 }
 
 table.dataTable {
     width: 100%;
     border-collapse: collapse;
+
 }
 
 table.dataTable th,
@@ -151,8 +152,17 @@ table.dataTable td {
     border: 1px solid black;
 }
 
-table.dataTable thead th {
+table.dataTable thead tr {
     background-color: #c28c29;
+}
+
+table.dataTable tbody tr:nth-child(4n+1),
+table.dataTable tbody tr:nth-child(4n+2) {
+    background-color: #f7f2be;
+}
+table.dataTable tbody tr:nth-child(4n+3),
+table.dataTable tbody tr:nth-child(4n+4) {
+    background-color: #f5e980;
 }
 
 pre {

@@ -111,6 +111,7 @@ function EditorService() {
         e.preventDefault();
         var name = e.originalEvent.clipboardData.getData('text');
         name = name.replace(/\p{L}+/ug, word => word[0].toUpperCase() + word.slice(1).toLowerCase());
+        navigator.clipboard.writeText(name);
         this.value = name;
     }
 

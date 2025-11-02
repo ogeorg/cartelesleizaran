@@ -49,6 +49,10 @@ function TableView() {
             this.checked = checks[this.name];
         });
     }
+    function onPartidoAlluralde() {
+        var $span = $(this).parent().find("span");
+        $span.text("Allurralde Kiroldegia");
+    }
     function onEditDato() {
         var $this = $(this);
         var $edit = $this.find("[data-key]");
@@ -123,7 +127,7 @@ function TableView() {
     }
     function makeCategoria(categoria) {
         var categoriaKey = equiposService.getCategoriaKeyByName(categoria.titulo);
-        var $cat = $('<div></div>');
+        var $cat = $(`<div class='partidosCat'></div>`);
 
         $(`<h3><input class='cb-category' type='checkbox' name='${categoria.titulo.toLowerCase()}' /> ${categoria.titulo}</h3>`) //
             .appendTo($cat);
@@ -143,30 +147,33 @@ function TableView() {
             $body.append(`<tr>
                 <td class='fixed-data'><span data-key='${parKey}:s' title='${competicion}'>${partido.s}</span></td>
                 <td class='editable-data'><span data-key='${parKey}:t'>${partido.t}</span></td>
-                <td class='editable-data'><span data-key='${parKey}:l'>${partido.l}</span></td>
+                <td class='editable-data'><span data-key='${parKey}:l'>${partido.l}</span><button class='partido-alluralde' style='float: right'>A</button></td>
                 <td class='editable-data'><span data-key='${parKey}:t1' data-length='25'>${partido.t1}</span>${links1}</td>
                 <td class='editable-data'><span data-key='${parKey}:g1' data-length='2'>${partido.g1 ?? ''}</span></td></tr>`);
-            $body.append(`<tr><td colspan='3' style='text-align: right'><button class='exchange'>x</button></td>
+            $body.append(`<tr><td colspan='3' style='text-align: right'><button class='partido-exchange'>x</button></td>
                 <td class='editable-data'><span data-key='${parKey}:t2' data-length='25'>${partido.t2}</span>${links2}</td>
                 <td class='editable-data'><span data-key='${parKey}:g2' data-length='2'>${partido.g2 ?? ''}</span></td></tr>`);
             partidoPos += 1;
         }
         return $cat;
-    } function makeCategorias(categorias) {
-        var $partidosTabla = $('#partidosTabla');
+    } 
+    
+    function makeCategorias(categorias) {
+        var $partidosCats = $('#partidosCats');
 
         var catChecks = getCategoriesChecks();
-        $partidosTabla.empty();
+        $partidosCats.empty();
         if (categorias) {
             for (var categoria of categorias) {
-                makeCategoria(categoria).appendTo($partidosTabla);
+                makeCategoria(categoria).appendTo($partidosCats);
             }
         } else {
-            var $partidosTabla = $('#partidosTabla');
-            $partidosTabla.append("<p>&lt;== Elige una configuración o teclee los datos de una jornada</p>")
+            var $partidosCats = $('#partidosCats');
+            $partidosCats.append("<p>&lt;== Elige una configuración o teclee los datos de una jornada</p>")
         }
         $('.editable-data').on('dblclick', onEditDato);
-        $('.exchange').on('click', onExchangeEquipos);
+        $('.partido-alluralde').on('click', onPartidoAlluralde);
+        $('.partido-exchange').on('click', onExchangeEquipos);
         setCategoriesChecks(catChecks);
     }
     function $makeSelectPlantillas() {
@@ -190,7 +197,7 @@ function TableView() {
                 .on('click', runLoadPlantilla);
 
             $(`<div id="fechaTabla" class="dataTableContainer"></div>`).appendTo($pnl);
-            $(`<div id="partidosTabla" class="dataTableContainer"></div>`).appendTo($pnl);
+            $(`<div id="partidosCats" class="dataTableContainer"></div>`).appendTo($pnl);
             $('#right_panel').append($pnl);
         }
         return $pnl;
