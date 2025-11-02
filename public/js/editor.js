@@ -294,7 +294,7 @@ const helpUI = new HelpUI();
 // Linking
 // ----------------------------------------------
 
-$(document).ready(function () {
+$(document).ready(async function () {
     frame = document.getElementById("pp");
     window.addEventListener("message", onMSG);
 
@@ -315,12 +315,12 @@ $(document).ready(function () {
     // Boton general
     $(".btnCerrarRightPanel").on('click', () => tableView.showPartidosOnRight());
 
-    configurationsUI.init();
+    await configurationsUI.init();
     tableView.init();
     editorService.init();
     equiposUI.init();
     parametersService.init();
-    broadcaster.broadcast('show-right-panel', { panel: 'equipos' });
+    broadcaster.broadcast('show-right-panel', { panel: 'configs' });
 
     // editorService.fillTableWithData();
 

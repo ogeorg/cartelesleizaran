@@ -108,8 +108,8 @@ async function getEquipos() {
     }
 }
 async function saveEquipos(data) {
-    const key = datastore.key(KIND_EQUIPOS);
-    const entity = { data };
+    const key = datastore.key([KIND_EQUIPOS, 'equipos']);
+    const entity = { key, data, excludeFromIndexes: ['equipos'] };
     try {
         var res = await datastore.save(entity);
         return res;
@@ -133,13 +133,29 @@ async function getAll(kind) {
     const query = datastore.createQuery(kind);
     try {
         var res = await datastore.runQuery(query);
+        console.log("getAll: res", res);
         var list = res[0];
+        console.log("getAll: list", list);
         return list;
     } catch (err) {
         console.error(err);
     }
 }
 
+async function getOne(kind) {
+    const query = datastore.createQuery(kind);
+    try {
+        var res = await datastore.runQuery(query);
+        //console.log("getAll: res", res);
+        var list = res[0];
+        //console.log("getAll: list", list);
+        var item = list[0];
+        console.log("getOne: item", item);
+        return item;
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 async function saveParamsSet(clave, data) {
     const key = datastore.key([KIND_PARAMS, clave]);
@@ -222,19 +238,22 @@ app.delete('/jornada/:clave', async (req, res, next) => {
 
 app.get('/equipos', async (req, res, next) => {
     console.log("getting all equipos...");
-    var data = await getAll(KIND_EQUIPOS);
-    console.log("equipos has length", data.length);
+    var data = await getOne(KIND_EQUIPOS);
+    var equipos = data.equipos;
+    console.log("equipos", equipos);
+    // console.log("equipos has length", equipos.length);
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(data, null, 4));
+    res.end(JSON.stringify(equipos, null, 4));
 });
 
 app.post('/equipos', async (req, res, next) => {
     try {
         const data = req.body;
         console.log(`post /equipos, con data = ${data}`);
-        await saveEquipos(data);
+        console.log(`keys = ${Object.keys(data)}`);
+        await saveEquipos({ equipos: data });
         console.log("saved!")
-        res.status(200).json({ message: 'Equipos saved successfully!', clave });
+        res.status(200).json({ message: 'Equipos saved successfully!' });
     } catch (error) {
         next(error);
     }
@@ -265,7 +284,7 @@ app.post('/paramsset/:clave', async (req, res, next) => {
 });
 
 const PORT = parseInt(parseInt(process.env.PORT)) || 8080;
-app.listen(PORT, () => { 
+app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });

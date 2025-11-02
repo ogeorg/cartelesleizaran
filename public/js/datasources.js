@@ -116,6 +116,30 @@ const EQUIPOS = {
             "https://kirolak.gipuzkoa.eus/es/competiciones-calendario.asp?deporte=todos&deportetmp=balonmano&ref=225&cat=36&gr=4&clas=0",
             ""
         ]
+    },
+    "ale:nes:1": {
+        "equipo": "Infantil neska 1",
+        "name": "Leizaran Txuria",
+        "competicion": "GIPUZKOAKO ALEBIN NESKEN 1.Fasea TXAPELKETA (B multzoa)",
+        "hasta": "2026-03-22",
+        "urls": [
+        ]
+    },
+    "ale:nes:2": {
+        "equipo": "Infantil neska 2",
+        "name": "Leizaran Gorria",
+        "competicion": "GIPUZKOAKO ALEBIN NESKEN 1.Fasea TXAPELKETA (A multzoa)",
+        "hasta": "2026-03-22",
+        "urls": [
+        ]
+    },
+    "ale:mut:1": {
+        "equipo": "Infantil mutila",
+        "name": "Leizaran Beltza",
+        "competicion": "GIPUZKOAKO ALEBIN MUTILEN TXAPELKETA",
+        "hasta": "2026-05-31",
+        "urls": [
+        ]
     }
 }
 
@@ -145,26 +169,18 @@ const SEXOS = {
 }
 function EquiposPersistor() {
     var persistor = new Persistor();
-    this.storeEquipos = function (equipos) {
-        localStorage.setItem("equipos", JSON.stringify(equipos));
-    }
-    this.loadEquipos = function () {
-        var equipos = JSON.parse(localStorage.getItem("equipos"));
-        if (equipos == null) params = EQUIPOS;
-        return equipos;
-    }
     this.download = function () {
         persistor.download("equipos", "equipos_leizaran.json");
     }
-    this.upload = function (parseFile) {
-        $dlg = persistor.getUploadDialog(parseFile);
+    this.upload = function (onSuccess) {
+        $dlg = persistor.getUploadDialog(onSuccess);
         $dlg.dialog("open");
     }
     /**
      * Devuelve una promesa de jornadas
      * @returns 
      */
-    this.getEquipos = function () {
+    this.fetchEquipos = function () {
         return $.ajax({
             url: 'equipos',
             type: 'GET',
@@ -208,13 +224,6 @@ function EquiposService() {
             console.log("Saved");
         });
     }
-
-    function parseFile(content) {
-        equipos = JSON.parse(content);
-        persistor.storeEquipos(equipos);
-        updateEquiposList()
-    }
-
 
     /** Devuelve la clave de categoría 
      * @param {*} name (SENIOR, ...)
@@ -278,9 +287,24 @@ function EquiposService() {
         persistor.download();
     }
 
+    this.upload = function (onSuccess) {
+        persistor.upload(function (content) {
+            equipos = JSON.parse(content);
+            persistor.saveEquipos(equipos, function () {
+                console.log("Saved");
+                onSuccess();
+            });
+        });
+    }
+    this.getEquipos = function (onSuccess) {
+        persistor.fetchEquipos().then(function (data) {
+            equipos = data;
+            onSuccess(equipos);
+        });
+    }
     var equipos;
     // persistor.getEquipos().then(function (data) { equipos = data; });
-    equipos = persistor.loadEquipos();
+    // equipos = persistor.loadEquipos();
 }
 
 function EquiposUI(equiposService) {
@@ -316,7 +340,12 @@ function EquiposUI(equiposService) {
             .on('click', function () { equiposService.downloadEquipos(); }) //
             .appendTo($btns);
         $(`<button>Cargar un fichero</button>`) //
-            .on('click', function () { persistor.upload(parseFile); }) //
+            .on('click', function () {
+                //persistor.upload(parseFile);
+                equiposService.upload(function () {
+                    updateEquiposList();
+                });
+            }) //
             .appendTo($btns);
         $(`<button>Cerrar</button>`) //
             .on('click', () => tableView.showPartidosOnRight()) //
@@ -483,16 +512,20 @@ function EquiposUI(equiposService) {
         $('.equipo-url').trigger('change');
     }
     this.init = async function () {
-        broadcaster //
-            .register(this, ['show-right-panel'], function (event) {
-                var $pnl = getEquiposPanel();
-                if (event.panel == 'equipos') {
-                    updateEquiposList();
-                    $pnl.show();
-                } else {
-                    $pnl.hide();
-                }
-            });
+        equiposService.getEquipos(function (data) {
+            equipos = data;
+            // updateEquiposList();
+            broadcaster //
+                .register(this, ['show-right-panel'], function (event) {
+                    var $pnl = getEquiposPanel();
+                    if (event.panel == 'equipos') {
+                        updateEquiposList();
+                        $pnl.show();
+                    } else {
+                        $pnl.hide();
+                    }
+                });
+        });
     }
 }
 

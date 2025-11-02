@@ -25,14 +25,6 @@ const BASE_URL = "https://8080-cs-1060876045999-default.cs-europe-west1-xedi.clo
 function ConfigPersistor() {
     var persistor = new Persistor();
 
-    /**
-     * Guarda todas las configuraciones en localStorage
-     * @param {*} configs 
-     */
-    this.storeConfigs = function (configs) {
-        localStorage.setItem("configs", JSON.stringify(configs));
-    }
-
     this.saveConfig = function (clave, config, onSuccess) {
         $.ajax({
             url: 'jornada/' + clave,
@@ -49,30 +41,24 @@ function ConfigPersistor() {
             }
         });
     }
-    this.loadConfigs = function () {
-        var configs = JSON.parse(localStorage.getItem("configs"));
-        if (configs == null) configs = {};
-        return configs;
-    }
+    
     /**
      * Devuelve una promesa de jornadas
      * @returns 
      */
-    this.getConfigurations = function () {
-        return $.ajax({
-            url: 'jornadas',
-            type: 'GET',
-            contentType: 'application/json',
-            dataType: 'json',
-            success: function (response) {
-                var configs = response; // JSON.parse(response);
-                if (configs == null) configs = {};
-                return configs;
-            },
-            error: function (xhr, status, error) {
-                console.error('Get failed:', status, error);
-            }
-        });
+    this.fetchConfigurations = async function () {
+        try {
+            var configs = await $.ajax({
+                url: 'jornadas',
+                type: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+            });
+            if (configs == null) configs = {};
+            return configs;
+        } catch (error) {
+            console.error('Get failed:', error);
+        }
     }
     this.download = function () {
         persistor.download("configs", "configuraciones_partidos_leizaran.json");
@@ -168,9 +154,7 @@ function ConfigurationsService() {
         return key;
     }
     this.init = async function () {
-        configsPersistor.getConfigurations().then(function (data) {
-            configs = data;
-        });
+        configs = await configsPersistor.fetchConfigurations();
         broadcaster //
             .register(this, ['config-selected'], function (event) {
                 currentConfigKey = event.key;
@@ -357,14 +341,14 @@ function ConfigurationsUI(configurationsService) {
                 var selectedKey = event.key;
                 updateTable(selectedKey);
             }) //
-        .register(this, ['show-right-panel'], function (event) {
-            if (event.panel == 'configs') {
-                updateTable();
-                $pnl.show();
-            } else {
-                $pnl.hide();
-            }
-        });
+            .register(this, ['show-right-panel'], function (event) {
+                if (event.panel == 'configs') {
+                    updateTable();
+                    $pnl.show();
+                } else {
+                    $pnl.hide();
+                }
+            });
     }
 
     var $currTr = null;

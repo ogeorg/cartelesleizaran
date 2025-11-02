@@ -33,7 +33,7 @@ function Persistor() {
                 return function (e) {
                     var content = e.target.result;
                     if (content) {
-                        innerFileParsingCallback(content);
+                        onLoadSucces(content);
                         $dlg.dialog('close');
                         $dlg.empty();
                     }
@@ -42,7 +42,7 @@ function Persistor() {
             reader.readAsText(f);
         }
     }
-    this.getUploadDialog = function (fileParsingCallback) {
+    this.getUploadDialog = function (onSuccess) {
         $dlg = $(`<div id="uploadDialog" title="Cargar un fichero"></div>`);
         var $inputs = $("<div></div>").appendTo($dlg);
         $(`<input type="file" id="files" name="files[]" />`) //
@@ -53,9 +53,9 @@ function Persistor() {
         var filesElem = document.getElementById('files');
         filesElem.addEventListener('change', handleFileSelecting, false);
 
-        innerFileParsingCallback = fileParsingCallback;
+        onLoadSucces = onSuccess;
         return $dlg;
     }
-    var innerFileParsingCallback = function (content) { };
+    var onLoadSucces = function (content) { };
     var $dlg;
 }
