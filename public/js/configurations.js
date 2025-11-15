@@ -28,7 +28,7 @@ function ConfigPersistor() {
     this.saveConfig = async function (clave, config) {
         try {
             const response = await $.ajax({
-                url: 'jornada/' + clave,
+                url: 'jornadas/' + clave,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(config),
@@ -63,7 +63,7 @@ function ConfigPersistor() {
     }
     this.deleteConfig = function (clave) {
         return $.ajax({
-            url: 'jornada/' + clave,
+            url: 'jornadas/' + clave,
             type: 'DELETE',
             contentType: 'application/json',
             dataType: 'json',
