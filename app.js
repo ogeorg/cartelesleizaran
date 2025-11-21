@@ -17,66 +17,32 @@ app.use(cors());
 // Enable pre-flight for all routes
 app.options('*', cors());
 
+// Datastore
 const { Datastore } = require('@google-cloud/datastore');
-
-// Instantiate a datastore client
 const datastore = new Datastore({
     projectId: 'leizarangamesmgr',
 });
 
-/*************/
-/* HOME PAGE */
-/*************/
-
+// HOME PAGE
 app.get('/', async (req, res, next) => {
     console.log("get /");
     res.render('editor', { layout: false });
 });
 
-/************/
-/* JORNADAS */
-/************/
-
+// JORNADAS
 let daoJornadas = require('./daos/jornadas.js')(datastore);
 const jornadasRouter = require('./routes/jornadas.js')(daoJornadas);
 app.use('/jornadas', jornadasRouter);
 
-/***********/
-/* EQUIPOS */
-/***********/
-
+// EQUIPOS
 let daoEquipos = require('./daos/equipos.js')(datastore);
 const equiposRouter = require('./routes/equipos.js')(daoEquipos);
 app.use('/equipos', equiposRouter);
 
-/***************/
-/* PARAMS SETS */
-/***************/
-
+// PARAMS SETS
 let daoParams = require('./daos/params.js')(datastore);
-
-app.get('/paramssets', async (req, res, next) => {
-    console.log("get /paramssets: getting all paramssets...");
-    var map = await daoParams.getAllByKey();
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(map, null, 4));
-});
-
-app.post('/paramsset/:clave', async (req, res, next) => {
-    try {
-        const { clave } = req.params;
-        const paramsset = req.body;
-        console.log(`post /paramsset, con clave = ${clave}`);
-        if (!clave) {
-            res.status(400).json({ error: 'The "clave" property is required.' });
-            return;
-        }
-        await daoParams.saveSet(clave, paramsset);
-        res.status(200).json({ message: 'Data saved successfully!', clave });
-    } catch (error) {
-        next(error);
-    }
-});
+const paramsRouter = require('./routes/params.js')(daoParams);
+app.use('/paramssets', paramsRouter);
 
 const PORT = parseInt(parseInt(process.env.PORT)) || 8080;
 app.listen(PORT, () => {
