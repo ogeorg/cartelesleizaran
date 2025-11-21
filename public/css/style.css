@@ -129,11 +129,14 @@ body {
     display: block;
 }
 
-#partidos,
-#script {
+#partidos {
     width: calc(100% - 5px);
     overflow-x: scroll;
     white-space: nowrap;
+}
+#script {
+    height: 300px;
+    width: 100%;
 }
 
 #fechaTabla, .partidosCat {

@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/smoothness/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ace.min.js" type="text/javascript" charset="utf-8"></script>
 
+    <script src="js/broadcaster.js"></script>
     <script src="js/plantillas.js"></script>
     <script src="js/persistor.js"></script>
     <script src="js/datasources.js"></script>
@@ -35,6 +37,23 @@
             font-weight: bold;
         }
     </style>
+
+<script type="module">
+(async ({chrome, netscape}) => {
+
+  // add Safari polyfill if needed
+  if (!chrome && !netscape)
+    await import('https://unpkg.com/@ungap/custom-elements');
+
+  const {default: HighlightedCode} =
+    await import('https://unpkg.com/highlighted-code');
+
+  // bootstrap a theme through one of these names
+  // https://github.com/highlightjs/highlight.js/tree/main/src/styles
+  HighlightedCode.useTheme('github-dark');
+})(self);
+</script>
+
 </head>
 
 <body>
@@ -72,7 +91,10 @@
                 </div>
                 <div id="bottom_left_panel">
                     <h2>Código javascript</h2>
-                    <textarea rows="12" id="script"></textarea>
+                    <div id="script">function foo(items) {
+                        var x = "All this is syntax highlighted";
+                        return x;
+                    }</div>
                     <div style='float: right' class='buttonbox'>
                         <button id="btnShowScriptParams">Parametros...</button>
                         <button id="btnPostScript">Run script</button>

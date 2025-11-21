@@ -376,7 +376,8 @@ function EquiposUI(equiposService) {
         }
         $('.equipo-url').trigger('change');
     }
-    this.init = async function () {
+
+    async function init () {
         equipos = await equiposService.getEquipos();
         broadcaster //
             .register(this, ['show-right-panel'], function (event) {
@@ -389,6 +390,11 @@ function EquiposUI(equiposService) {
                 }
             });
     }
+
+    broadcaster.register(this, ['ready'], async function (event) {
+        await init();
+    });
+    equiposUI.init();
 }
 
 var equiposService = new EquiposService();

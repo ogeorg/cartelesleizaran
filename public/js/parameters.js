@@ -59,7 +59,7 @@ function ParametersService() {
             var param_def = PARAM_DEFINITIONS[param];
             if (param_def.type == 'textarea') {
                 $this.append(`<div>${title}</div>`);
-                $(`<textarea data-param='${param}' style='width: 100%; box-sizing: border-box;' rows='10'></textarea>`) //
+                $(`<textarea is="highlighted-code" data-param='${param}' style='width: 100%; box-sizing: border-box;' rows='10'></textarea>`) //
                     .appendTo($this)
                     .val(value);
             } else {
@@ -153,7 +153,7 @@ function ParametersService() {
         return '{' + res.join(', ') + '}';
     }
 
-    this.init = function () {
+    function init() {
         paramsPersistor.getParamsSets() //
             .then(function (sets) {
                 paramsSets = sets;
@@ -169,6 +169,9 @@ function ParametersService() {
             });
     }
 
+    broadcaster.register(this, ['ready'], function (event) {
+        init();
+    });
     var paramsSets;
     var $pnl;
 }
@@ -189,13 +192,13 @@ function ParametersPersistor() {
         }
     }
 
-    this.saveParamsSet = async function (paramsKey, paramsSet) {
+    this.saveParamsSet = async function (paramsKey, paramssets) {
         try {
             return await $.ajax({
-                url: 'paramsset/' + paramsKey,
+                url: 'paramssets/' + paramsKey,
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(paramsSet),
+                data: JSON.stringify(paramssets),
                 dataType: 'json'
             });
         } catch (error) {

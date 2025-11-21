@@ -96,7 +96,7 @@ function slide() {
 var frame = null;
 function runScript(e) {
     slideUp();
-    var script = document.getElementById("script").value;
+    var script = photopeaCodeService.getScript();
     frame.contentWindow.postMessage(script, "*");
 }
 
@@ -219,28 +219,7 @@ function EditorService() {
 }
 const editorService = new EditorService();
 
-function Broadcaster() {
-    var eventsMap = {};
-    this.register = function (listener, eventName, handler) {
-        if (!(eventName in eventsMap)) {
-            eventsMap[eventName] = [[listener, handler]];
-        } else {
-            eventsMap[eventName].push([listener, handler]);
-        }
-        return this;
-    }
-    this.broadcast = function (eventName, data) {
-        if (!(eventName in eventsMap))
-            return;
-        for (handler of eventsMap[eventName]) {
-            var listener = handler[0];
-            var callback = handler[1];
-            callback.call(listener, data);
-        }
-    };
 
-}
-const broadcaster = new Broadcaster();
 // broadcaster.broadcast('config-name-changed', { oldname: null, newname: 'abc' })
 
 function PhotopeaCodeService() {
@@ -259,13 +238,34 @@ function PhotopeaCodeService() {
         var plantilla = $("#selPlantillas").val();
         script = parametersService.getParams(plantilla).code ?? $("#basecode4Photopea").val();
         script = script.replace("$$PARAMS$$", parametersService.getParamsAsStr(plantilla));
-        $("#script").val(json + script);
+
+        // $("#script").val(json + script);
+        getEditor().setValue(json + script);
+    }
+    this.getScript = function () {
+        // getElementById("script").value
+        return getEditor().getValue();
     }
     this.fillCodeWithTable = function () {
         var dom = tableView.getDom();
         this.fillCodeWithDom(dom)
     }
-
+    function getEditor() {
+        /*
+        if (!editor) {
+            editor = window.ace.edit("script");
+            editor.setTheme("ace/theme/monokai");
+            editor.session.setMode("ace/mode/javascript");
+        }
+        */
+        return editor;
+    }
+    broadcaster.register(this, ['ready'], function (event) {
+        editor = window.ace.edit("script");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/javascript");
+    });
+    var editor = null;
 }
 const photopeaCodeService = new PhotopeaCodeService();
 // ----------------------------------------------
@@ -317,11 +317,8 @@ $(document).ready(async function () {
     await configurationsUI.init();
     tableView.init();
     editorService.init();
-    equiposUI.init();
-    parametersService.init();
+    broadcaster.broadcast('ready');
     broadcaster.broadcast('show-right-panel', { panel: 'configs' });
-
-    // editorService.fillTableWithData();
 
     slideDown();
 });
