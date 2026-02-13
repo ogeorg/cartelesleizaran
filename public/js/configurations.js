@@ -59,7 +59,7 @@ function ConfigPersistor() {
         }
     }
     this.download = function () {
-        persistor.download("configs", "configuraciones_partidos_leizaran.json");
+        persistor.download("jornadas", "configuraciones_partidos_leizaran.json");
     }
     this.deleteConfig = function (clave) {
         return $.ajax({
@@ -214,7 +214,7 @@ function ConfigurationsUI(configurationsService) {
 
         var configs = configurationsService.getConfigurations();
         var currentKey = configurationsService.getCurrentKey();
-        for (var key of Object.keys(configs).sort()) {
+        for (var key of Object.keys(configs).sort((a, b) =>  configs[b].name.localeCompare(configs[a].name))) {
             var name = configs[key].name;
             var b1 = `<button class='btnSeeConfig'>Ver</button>`;
             var b2 = `<button class='btnLoadConfig'>Cargar</button>`;

@@ -394,7 +394,7 @@ function EquiposUI(equiposService) {
     broadcaster.register(this, ['ready'], async function (event) {
         await init();
     });
-    equiposUI.init();
+//    equiposUI.init();
 }
 
 var equiposService = new EquiposService();

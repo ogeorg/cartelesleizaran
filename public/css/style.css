@@ -134,8 +134,11 @@ body {
     overflow-x: scroll;
     white-space: nowrap;
 }
+
+#partidos,
+#paramseditor,
 #script {
-    height: 300px;
+    height: 270px;
     width: 100%;
 }
 

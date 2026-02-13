@@ -119,7 +119,7 @@ function EditorService() {
      * Coge la desripcion de partidos
      */
     this.fillTableWithData = function () {
-        var partidos = $data.val();
+        var partidos = editor.getValue(); // $data.val();
         var dom = parsePartidos(partidos);
         tableView.fillWithDom(dom);
         broadcaster.broadcast('show-right-panel', { panel: 'partidos' });
@@ -146,13 +146,13 @@ function EditorService() {
     this.fillDataWithTable = function () {
         var dom = tableView.getDom();
         var data = transformDom2Data(dom);
-        $data.val(data);
+        editor.setValue(data); //        $data.val(data);
     }
     this.saveCurrentConfig = async function () {
         if (!currentConfigKey) {
             this.saveAs();
         } else {
-            var data = $("#partidos").val();
+            var data = editor.getValue(); // $("#partidos").val();
             currentConfig.data = data;
             await configsPersistor.saveConfig(currentConfigKey, currentConfig);
             broadcaster.broadcast('config-selected', { key: currentConfigKey, config: currentConfig });
@@ -170,7 +170,7 @@ function EditorService() {
                 buttons: {
                     "OK": async function () {
                         var name = $("#txtConfigNameSaveConfigAs").val();
-                        var data = $("#partidos").val();
+                        var data = editor.getvalue(); // $("#partidos").val();
                         var config = { name, data };
                         var key = configurationsService.addConfiguration(config);
                         await configsPersistor.saveConfig(key, config);
@@ -186,9 +186,13 @@ function EditorService() {
     }
 
     this.init = function () {
-        $data = $("#partidos");
+        // $data = $("#partidos");
+        editor = window.ace.edit("partidos");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/ini");
+
         $("#btnSaveSaveConfig").on('click', () => {
-            currentConfig.data = $data.val();
+            currentConfig.data = editor.getValue(); //$data.val();
             this.saveCurrentConfig()
         });
         $("#btnShowSaveConfigAs").on('click', () => this.saveAs());
@@ -210,12 +214,14 @@ function EditorService() {
                 currentConfig = event.config;
                 currentConfigKey = event.key;
                 $("#currentConfigKey").text(`Configuración: ${currentConfig.name ?? '--'}`);
-                $data.val(currentConfig.data);
+                editor.setValue(currentConfig.data);
+                // $data.val(currentConfig.data);
             });
     }
+    var editor;
     var currentConfig = {};
     var currentConfigKey = null;
-    var $data;
+    // var $data;
 }
 const editorService = new EditorService();
 
@@ -251,13 +257,6 @@ function PhotopeaCodeService() {
         this.fillCodeWithDom(dom)
     }
     function getEditor() {
-        /*
-        if (!editor) {
-            editor = window.ace.edit("script");
-            editor.setTheme("ace/theme/monokai");
-            editor.session.setMode("ace/mode/javascript");
-        }
-        */
         return editor;
     }
     broadcaster.register(this, ['ready'], function (event) {
@@ -294,6 +293,8 @@ const helpUI = new HelpUI();
 // ----------------------------------------------
 
 $(document).ready(async function () {
+    console.log("=== START READY ===");
+
     frame = document.getElementById("pp");
     window.addEventListener("message", onMSG);
 

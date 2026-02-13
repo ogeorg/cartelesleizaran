@@ -1,13 +1,28 @@
 
 function Persistor() {
     this.download = function (dataKey, filename) {
+        console.log(`will download ${dataKey}`)
+
+        // Creates the link
+        const link = document.createElement('a');        
+        link.href = 'dataKey';
+        link.download = filename;
+
+        // Simulates the link click
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+    this.downloadLocal = function (dataKey, filename) {
         // const json = { numberProp: 1, stringProp: "hello world" };
         // const data = JSON.stringify(json);
+        console.error(`download: get item ${dataKey}`);
         const data = localStorage.getItem(dataKey);
         // Pass the string to a Blob and turn it
         // into an ObjectURL
         const blob = new Blob([data], { type: "application/json" });
         const jsonObjectUrl = URL.createObjectURL(blob);
+        console.log("will download from " + jsonObjectUrl);
 
         // Create an anchor element, set it's
         // href to be the Object URL we have created

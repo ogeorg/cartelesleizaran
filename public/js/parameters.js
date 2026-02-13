@@ -59,9 +59,14 @@ function ParametersService() {
             var param_def = PARAM_DEFINITIONS[param];
             if (param_def.type == 'textarea') {
                 $this.append(`<div>${title}</div>`);
-                $(`<textarea is="highlighted-code" data-param='${param}' style='width: 100%; box-sizing: border-box;' rows='10'></textarea>`) //
-                    .appendTo($this)
-                    .val(value);
+                // $(`<textarea is="highlighted-code" data-param='${param}' style='width: 100%; box-sizing: border-box;' rows='10'></textarea>`) //
+                // .val(value);
+                $(`<div data-param='${param}' id='paramseditor'></div>`)
+                    .appendTo($this);
+                let editor = window.ace.edit("paramseditor");
+                editor.setTheme("ace/theme/monokai");
+                editor.session.setMode("ace/mode/javascript");
+                editor.setValue(value);
             } else {
                 $this.append(`<div style='display: inline-block; width: 200px'>${title}</div>`);
                 $this.append(`<input data-param='${param}' data-value='${value}' type='text' value='${value}'/> (${param} = ${value})`);
