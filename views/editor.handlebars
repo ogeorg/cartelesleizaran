@@ -18,6 +18,7 @@
     <script src="js/configurations.js"></script>
     <script src="js/parameters.js"></script>
     <script src="js/editor.js"></script>
+    <script src="js/mode-csv-ini.js"></script>
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" />
 
     <title>Editor de Carteles</title>
@@ -45,15 +46,40 @@
   if (!chrome && !netscape)
     await import('https://unpkg.com/@ungap/custom-elements');
 
-  const {default: HighlightedCode} =
-    await import('https://unpkg.com/highlighted-code');
+  const {default: HighlightedCode} = await import('https://unpkg.com/highlighted-code');
 
   // bootstrap a theme through one of these names
   // https://github.com/highlightjs/highlight.js/tree/main/src/styles
   HighlightedCode.useTheme('github-dark');
 })(self);
 </script>
+<style>
+    /* Target the specific operator token */
+.ace_editor .ace_separator {
+    color: #ffffff !important; /* Bright orange-red */
+    font-weight: bold;
+}
+.ace_text.ace_col1 {
+    color: #4f78e9; 
+    font-style: italic;
+}
+.ace_text.ace_colFecha {
+    color: #99cf80;
+}
+.ace_text.ace_colLugar {
+    color: #ba79f0;
+    font-style: bold;
+}
+.ace_text.ace_colTeam1 {
+    color: #72e2bd;
+    font-style: bold;
+}
+.ace_text.ace_colTeam2 {
+    color: #a2b8f5;
+    font-style: bold;
+}
 
+</style>
 </head>
 
 <body>

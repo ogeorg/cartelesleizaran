@@ -189,7 +189,8 @@ function EditorService() {
         // $data = $("#partidos");
         editor = window.ace.edit("partidos");
         editor.setTheme("ace/theme/monokai");
-        editor.session.setMode("ace/mode/ini");
+        // editor.session.setMode("ace/mode/ini");
+        editor.session.setMode("ace/mode/csv_ini");
 
         $("#btnSaveSaveConfig").on('click', () => {
             currentConfig.data = editor.getValue(); //$data.val();
