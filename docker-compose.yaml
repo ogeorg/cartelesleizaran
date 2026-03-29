@@ -36,8 +36,10 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: cartelesleizaran
+      PORT: ${PORT}
     ports:
-      - "3000:8080"
+      - target: 3000    # Inner (Container)
+        published: 8080 # Outer (Host)
     restart: unless-stopped
     networks:
       - default
