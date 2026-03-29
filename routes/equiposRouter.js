@@ -6,10 +6,13 @@ module.exports = function (daoEquipos) {
 
     router.get('/', async (req, res, next) => {
         console.log("get /equipos: getting all equipos...");
-        var data = await daoEquipos.fetch();
-        var equipos = data.equipos;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(equipos, null, 4));
+        var daoRes = await daoEquipos.fetch();
+    if (daoRes.ok) {
+            console.log("data has length", JSON.stringify(daoRes.data).length);
+            res.json(daoRes.data);
+        } else {
+            res.status(400);
+        }
     });
 
     router.post('/', async (req, res, next) => {

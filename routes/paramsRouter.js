@@ -1,42 +1,34 @@
-'use strict';
-
+'use strict'
 const express = require('express');
 
-function createJornadasRouter(daoJornadas) {
+module.exports = function (daoParams) {
     const router = express.Router();
 
+    /**
+     * 
+     */
     router.get('/', async (req, res, next) => {
-        console.log("getting all jornadas...");
-        var data = JSON.stringify(await daoJornadas.fetch())
-        console.log("data has length", data.length);
+        console.log("get /paramssets: getting all paramssets...");
+        var map = await daoParams.getAllByKey();
         res.setHeader('Content-Type', 'application/json');
-        res.end(data, null, 4);
+        res.end(JSON.stringify(map, null, 4));
     });
 
-    /**
-     * Guarda una jornada
-     */
     router.post('/:clave', async (req, res, next) => {
         try {
             const { clave } = req.params;
-            const data = req.body;
-            console.log(`post /jornadas/${clave}, guarda la jornada con clave = ${clave}`);
+            const paramssets = req.body;
+            console.log(`post /paramssets, con clave = ${clave}`);
             if (!clave) {
                 res.status(400).json({ error: 'The "clave" property is required.' });
                 return;
             }
-            await daoJornadas.save(clave, data);
+            await daoParams.saveSet(clave, paramssets);
             res.status(200).json({ message: 'Data saved successfully!', clave });
         } catch (error) {
             next(error);
         }
     });
 
-    router.delete('/:clave', async (req, res, next) => {
-        // ... implementation from app.js
-    });
-
     return router;
 }
-
-module.exports = createJornadasRouter;

@@ -18,7 +18,8 @@ app.use(cors());
 app.options('*', cors());
 
 // Datastore
-const { Datastore } = require('@google-cloud/datastore');
+// const { Datastore } = require('@google-cloud/datastore');
+const Datastore = require('./datastores/datastore.js')
 const datastore = new Datastore({
     projectId: 'leizarangamesmgr',
 });
@@ -30,18 +31,18 @@ app.get('/', async (req, res, next) => {
 });
 
 // JORNADAS
-let daoJornadas = require('./daos/jornadas.js')(datastore);
-const jornadasRouter = require('./routes/jornadas.js')(daoJornadas);
+let daoJornadas = require('./daos/jornadasDao.js')(datastore);
+const jornadasRouter = require('./routes/jornadasRouter.js')(daoJornadas);
 app.use('/jornadas', jornadasRouter);
 
 // EQUIPOS
-let daoEquipos = require('./daos/equipos.js')(datastore);
-const equiposRouter = require('./routes/equipos.js')(daoEquipos);
+let daoEquipos = require('./daos/equiposDao.js')(datastore);
+const equiposRouter = require('./routes/equiposRouter.js')(daoEquipos);
 app.use('/equipos', equiposRouter);
 
 // PARAMS SETS
-let daoParams = require('./daos/params.js')(datastore);
-const paramsRouter = require('./routes/params.js')(daoParams);
+let daoParams = require('./daos/paramsDao.js')(datastore);
+const paramsRouter = require('./routes/paramsRouter.js')(daoParams);
 app.use('/paramssets', paramsRouter);
 
 const PORT = parseInt(parseInt(process.env.PORT)) || 8080;

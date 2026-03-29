@@ -39,7 +39,7 @@ function ConfigPersistor() {
             console.error('Save failed:', jqXHR.statusText, jqXHR.status, jqXHR);
         }
     }
-    
+
     /**
      * Devuelve una promesa de jornadas
      * @returns 
@@ -67,7 +67,7 @@ function ConfigPersistor() {
             type: 'DELETE',
             contentType: 'application/json',
             dataType: 'json',
-            success: function (response) {
+            ok: function (response) {
                 console.log('Delete successful:', response);
             },
             error: function (xhr, status, error) {
@@ -168,7 +168,7 @@ function ConfigurationsUI(configurationsService) {
         if (!$pnl) {
             $pnl = $("<div id='configurations-panel' style='display: none;'>");
             $pnl //
-                .append("<h2>Configuraciones</h2>") //
+                .append("<h2>Jornadas</h2>") //
                 .append(make$Botonera()) //
                 .append(`<table id="configsList"><thead><tr><th>Clave</th><th>Acciones</th></tr></thead><tbody></tbody></table>`) //                
                 .append($(`<div id='configNamePreview' style='margin-top: 10px'></div><pre id="configPreview"></pre>`)) //
@@ -214,7 +214,7 @@ function ConfigurationsUI(configurationsService) {
 
         var configs = configurationsService.getConfigurations();
         var currentKey = configurationsService.getCurrentKey();
-        for (var key of Object.keys(configs).sort((a, b) =>  configs[b].name.localeCompare(configs[a].name))) {
+        for (var key of Object.keys(configs).sort((a, b) => configs[b].name.localeCompare(configs[a].name))) {
             var name = configs[key].name;
             var b1 = `<button class='btnSeeConfig'>Ver</button>`;
             var b2 = `<button class='btnLoadConfig'>Cargar</button>`;

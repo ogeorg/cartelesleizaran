@@ -161,6 +161,7 @@ function ParametersService() {
     function init() {
         paramsPersistor.getParamsSets() //
             .then(function (sets) {
+                // Setea attribute paramsSets
                 paramsSets = sets;
                 broadcaster //
                     .register(this, ['show-right-panel'], function (event) {

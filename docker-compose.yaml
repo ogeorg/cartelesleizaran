@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb-cartelesleizaran
+    environment:
+      MARIADB_DATABASE: cartelesleizaran
+      MARIADB_ROOT_PASSWORD: "123"
+    ports:
+      - "3306:3306"
+    volumes:
+      - D:/Projects/Docker/Nodejs/cartelesleizaran/mariadb_volume:/var/lib/mysql
+      - D:/Projects/Docker/Nodejs/cartelesleizaran/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  mysql-client:
+    image: mysql:8
+    container_name: mysql-client
+    depends_on:
+      - mariadb
+    entrypoint: ["sleep", "infinity"]
+    # Para entrar al cliente:
+    # docker exec -it mysql-client mysql -h mariadb -u root -p
+    networks:
+      - default
+
+  cartelesleizaran:
+    build: .
+    container_name: cartelesleizaran
+    depends_on:
+      - mariadb
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: "123"
+      DB_NAME: cartelesleizaran
+    ports:
+      - "3000:8080"
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge

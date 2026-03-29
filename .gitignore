@@ -1,1 +1,4 @@
 /node_modules
+/mariadb_volume
+/coverage
+/data
