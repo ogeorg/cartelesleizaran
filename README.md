@@ -26,3 +26,7 @@ tengo que:
 - crear un dockerfile
 - crear las bases de datos (eliminar el directorio data, se recrea con init.sql)
 - volver a meter el Datastore para gcloud datastore
+
+
+scp init.sql olivier@204.168.204.243:cartelesleizaran/init.sql
+scp .env.vps olivier@204.168.204.243:cartelesleizaran/.env

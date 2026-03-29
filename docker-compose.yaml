@@ -6,12 +6,12 @@ services:
     container_name: mariadb-cartelesleizaran
     environment:
       MARIADB_DATABASE: cartelesleizaran
-      MARIADB_ROOT_PASSWORD: "123"
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
-      - D:/Projects/Docker/Nodejs/cartelesleizaran/mariadb_volume:/var/lib/mysql
-      - D:/Projects/Docker/Nodejs/cartelesleizaran/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ${DB_DATA_PATH}:/var/lib/mysql
+      - ${DB_DATA_INI_FILE}:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
 
   mysql-client:
@@ -33,8 +33,8 @@ services:
     environment:
       DB_HOST: mariadb
       DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: "123"
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: cartelesleizaran
     ports:
       - "3000:8080"
