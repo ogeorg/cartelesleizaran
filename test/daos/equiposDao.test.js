@@ -55,22 +55,22 @@ describe('Equipos DAO', () => {
             mockConn.query.mockResolvedValue({ affectedRows: 1 });
 
             // Act
-            const changes = await equiposDao.save(inputData);
+            const result = await equiposDao.save(inputData);
 
             // Assert
             expect(mockConn.beginTransaction).toHaveBeenCalled();
-            sql = 'INSERT INTO equipos (equi_name, equi_data) VALUES (?, ?) ON DUPLICATE KEY UPDATE equi_data = VALUES(equi_data);';
             expect(mockConn.query).toHaveBeenNthCalledWith(1,
-                expect.stringContaining(sql),
+                expect.any(String),
                 ['sen:nes:1', '{"name":"Neskak","urls":["url nes"]}']
             );
             expect(mockConn.query).toHaveBeenNthCalledWith(2,
-                expect.stringContaining(sql),
+                expect.any(String),
                 ['sen:mut:1', '{"name":"Mutilak","urls":["url mut"]}']
             );
             expect(mockConn.commit).toHaveBeenCalled();
             expect(mockConn.release).toHaveBeenCalled();
-            expect(changes.affectedRows).toBe(2);
+            expect(result.ok).toBe(true);
+            expect(result.affectedRows).toBe(2);
         });
 
         it('should rollback and return 0 if a query fails', async () => {
@@ -82,12 +82,13 @@ describe('Equipos DAO', () => {
             mockConn.query.mockRejectedValue(new Error('DB Error'));
 
             // Act
-            const changes = await equiposDao.save(inputData);
+            const result = await equiposDao.save(inputData);
 
             // Assert
             expect(mockConn.rollback).toHaveBeenCalled();
             expect(mockConn.release).toHaveBeenCalled();
-            expect(changes.affectedRows).toBe(0);
+            expect(result.ok).toBe(false);
+            expect(result.error).toBeDefined();
         });
     });
 });

@@ -52,6 +52,7 @@ describe('Parameters DAO', () => {
                 expect.any(Array),
             );
         expect(mockConn.release).toHaveBeenCalled();
+        expect(result.ok).toBe(true);
         expect(result.affectedRows).toBe(1);
         const sentParams = mockConn.query.mock.calls[0];
         const sentData = sentParams[1];

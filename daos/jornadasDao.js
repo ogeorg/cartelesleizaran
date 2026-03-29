@@ -71,6 +71,8 @@ function GDSJornadasDao(datastore) {
 function MDBJornadasDao(datastore) {
     var module = {};
     const TABLE_JORNADA = 'jornadas';
+    const QUERY_SAVE = `INSERT INTO ${TABLE_JORNADA} (jorn_id, jorn_name, jorn_data) VALUES (?, ?, ?) 
+        ON DUPLICATE KEY UPDATE jorn_name = VALUES(jorn_name), jorn_data = VALUES(jorn_data);`
 
     module.save = async function (clave, data) {
         console.log("--saveEquipos--");
@@ -78,8 +80,7 @@ function MDBJornadasDao(datastore) {
         let conn;
         try {
             conn = await datastore.getConnection();
-            const query = `INSERT INTO ${TABLE_JORNADA} (jorn_id, jorn_name, jorn_data) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE jorn_name = VALUES(jorn_name), jorn_data = VALUES(jorn_data);`
-            const result = await conn.query(query, [clave, data['name'], data['data']]);
+            const result = await conn.query(QUERY_SAVE, [clave, data['name'], data['data']]);
             return { ok: true, affectedRows: result.affectedRows };
         } catch (err) {
             console.error(err);

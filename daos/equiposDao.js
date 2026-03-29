@@ -40,6 +40,8 @@ function MDBEquiposDao(datastore) {
     var module = {};
 
     const TABLE = 'equipos';
+    const QUERY_SAVE = `INSERT INTO ${TABLE} (equi_name, equi_data) VALUES (?, ?) 
+        ON DUPLICATE KEY UPDATE equi_data = VALUES(equi_data);`;
 
     module.fetch = async function () {
         // 1) get all equipos (clave, data)
@@ -66,18 +68,17 @@ function MDBEquiposDao(datastore) {
             let changeCount = 0
             for (let name in equipos) {
                 let data = JSON.stringify(equipos[name]);
-                const query = `INSERT INTO ${TABLE} (equi_name, equi_data) VALUES (?, ?) ON DUPLICATE KEY UPDATE equi_data = VALUES(equi_data);`;
-                const result = await conn.query(query, [name, data]);
+                const result = await conn.query(QUERY_SAVE, [name, data]);
                 changeCount += result.affectedRows;
                 console.log(result);
             }
 
             await conn.commit();
-            return {affectedRows: changeCount};
+            return { ok: true, affectedRows: changeCount};
         } catch (err) {
             if (conn) await conn.rollback();
             console.error(err);
-            return {affectedRows: 0};
+            return { ok: false, error: "Could not save equipos"};
         } finally {
             if (conn) conn.release(); // IMPORTANT: Release connection back to pool
         }

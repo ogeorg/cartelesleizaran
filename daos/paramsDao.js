@@ -36,36 +36,24 @@ function MDBParamsDao(datastore) {
     let baseDao = require('./baseDao.js')(datastore);
     let module = {};
     const TABLE = 'params';
-
+    const QUERY_SAVE = `
+        INSERT INTO ${TABLE} 
+            (prms_name, prms_usedefault, prms_code, prms_offsetright, prms_offsettop) 
+            VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE 
+            prms_usedefault = VALUES(prms_usedefault), 
+            prms_code = VALUES(prms_code), 
+            prms_offsetright = VALUES(prms_offsetright), 
+            prms_offsettop = VALUES(prms_offsettop);`;
 
     module.saveSet = async function (clave, data) {
         console.log("-- save params --");
         let conn;
         try {
             conn = await datastore.getConnection();
-
-            /*
-            prms_name VARCHAR(20) PRIMARY KEY,
-            prms_usedefault BOOLEAN,
-            prms_code TEXT,
-            prms_offsetright VARCHAR(100),
-            prms_offsettop VARCHAR(100)
-            */
-
-            const query = `
-                INSERT INTO ${TABLE} 
-                    (prms_name, prms_usedefault, prms_code, prms_offsetright, prms_offsettop) 
-                    VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE 
-                    prms_usedefault = VALUES(prms_usedefault), 
-                    prms_code = VALUES(prms_code), 
-                    prms_offsetright = VALUES(prms_offsetright), 
-                    prms_offsettop = VALUES(prms_offsettop);`;
-            const result = await conn.query(query,
+            const result = await conn.query(QUERY_SAVE,
                 [clave, data['usedefault'], data['code'], data['offsetright'], data['offsettop']]);
-            console.log(result);
-
-            return result;
+            return { ok: true, affectedRows: result.affectedRows };
         } catch (err) {
             console.error(err);
             return { affectedRows: 0 };
@@ -88,8 +76,7 @@ function MDBParamsDao(datastore) {
                 };
             }
             return { ok: true, data: newdata };
-        }
-        else {
+        } else {
             return baseRes;
         }
     }
