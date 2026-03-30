@@ -41,19 +41,22 @@ describe('Parameters DAO', () => {
     });
 
     test('save params', async () => {
+        // Given
         const clave = 'plantilla1';
         const data =  { usedefault: false, code:'Code 1', offsetright: 10, offsettop:20  };
         mockConn.query.mockResolvedValue({ affectedRows: 1 });
 
+        // When
         const result = await paramsDao.saveSet(clave, data);
+        const expectedResult = { ok: true, affectedRows: 1 };
 
+        // Then
         expect(mockConn.query).toHaveBeenCalledWith(
                 expect.any(String),
                 expect.any(Array),
             );
         expect(mockConn.release).toHaveBeenCalled();
-        expect(result.ok).toBe(true);
-        expect(result.affectedRows).toBe(1);
+        expect(result).toEqual(expectedResult);
         const sentParams = mockConn.query.mock.calls[0];
         const sentData = sentParams[1];
         expect(sentData[0]).toBe(clave);

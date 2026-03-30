@@ -12,7 +12,7 @@ function createJornadasRouter(daoJornadas) {
             console.log("data has length", JSON.stringify(daoRes.data).length);
             res.json(daoRes.data);
         } else {
-            res.status(400);
+            res.status(500);
         }
     });
 
@@ -20,22 +20,18 @@ function createJornadasRouter(daoJornadas) {
      * Guarda una jornada
      */
     router.post('/:clave', async (req, res, next) => {
-        try {
-            const { clave } = req.params;
-            const data = req.body;
-            console.log(`post /jornadas/${clave}, guarda la jornada con clave = ${clave}`);
-            if (!clave) {
-                res.status(400).json({ error: 'The "clave" property is required.' });
-                return;
-            }
-            const result = await daoJornadas.save(clave, data);
-            if (result.ok) {
-                res.status(200).json({ message: 'Data saved successfully!', clave });
-            } else {
-                res.status(400);
-            }
-        } catch (error) {
-            next(error);
+        const { clave } = req.params;
+        const data = req.body;
+        console.log(`post /jornadas/${clave}, guarda la jornada con clave = ${clave}`);
+        if (!clave) {
+            res.status(400).json({ error: 'The "clave" property is required.' });
+            return;
+        }
+        const daoRes = await daoJornadas.save(clave, data);
+        if (daoRes.ok) {
+            res.status(200).json({ message: 'Data saved successfully!', clave });
+        } else {
+            res.status(500).json({ error: daoRes.error });
         }
     });
 
