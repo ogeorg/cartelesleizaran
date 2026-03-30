@@ -19,7 +19,9 @@ hay 3 containers:
 - cliente sql
 - applicacion nodejs
 
-para conectarse a la BD en el cliente: mysql -h mariadb -u root -p
+para conectarse a la BD en el cliente: 
+  docker exec -it mysql-client bash
+  mysql -h mariadb -u root -p
 
 tengo que:
 - ver como connectar desde windows a mariadb
@@ -30,3 +32,8 @@ tengo que:
 
 scp init.sql olivier@204.168.204.243:cartelesleizaran/init.sql
 scp .env.vps olivier@204.168.204.243:cartelesleizaran/.env
+
+
+inner port 3000
+
+

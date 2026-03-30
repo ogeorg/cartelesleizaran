@@ -38,8 +38,8 @@ services:
       DB_NAME: cartelesleizaran
       PORT: ${PORT}
     ports:
-      - target: 3000    # Inner (Container)
-        published: 8080 # Outer (Host)
+      - target: 3000       # Inner (Container)
+        published: ${PORT} # Outer (Host)
     restart: unless-stopped
     networks:
       - default

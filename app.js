@@ -45,7 +45,6 @@ let daoParams = require('./daos/paramsDao.js')(datastore);
 const paramsRouter = require('./routes/paramsRouter.js')(daoParams);
 app.use('/paramssets', paramsRouter);
 
-// const PORT = parseInt(parseInt(process.env.PORT)) || 8080;
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
