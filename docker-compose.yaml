@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   mariadb:
     image: mariadb:latest
@@ -36,7 +34,6 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: cartelesleizaran
-      PORT: ${PORT}
     ports:
       - target: 3000       # Inner (Container)
         published: ${PORT} # Outer (Host)

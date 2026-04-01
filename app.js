@@ -46,7 +46,7 @@ const paramsRouter = require('./routes/paramsRouter.js')(daoParams);
 app.use('/paramssets', paramsRouter);
 
 const PORT = 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`App listening on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });
